@@ -2,12 +2,6 @@ version = 1
 revision = 3
 requires-python = ">=3.12"
 
-[manifest]
-members = [
-    "mdverse-entity-norm",
-    "mdverse-entity-norm-env",
-]
-
 [[package]]
 name = "bandit"
 version = "1.9.4"
@@ -88,11 +82,6 @@ dev = [
     { name = "pytest", specifier = ">=9.0.2" },
     { name = "ruff", specifier = ">=0.15.1" },
 ]
-
-[[package]]
-name = "mdverse-entity-norm-env"
-version = "0.1.0"
-source = { virtual = "mdverse_entity_norm_env" }
 
 [[package]]
 name = "packaging"
