@@ -44,7 +44,7 @@
     git push origin "<your-branch-name>"
     ```
 
-9. Create a [pull request](https://github.com/mdverse/mdws/compare).
+9. Create a [pull request](https://github.com/mdverse/mdverse_entity_norm/compare).
 
     Click compare across forks if you don't see your branch.
 
