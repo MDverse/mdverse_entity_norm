@@ -1,0 +1,38 @@
+[project]
+name = "mdverse-entity-norm"
+version = "0.1.0"
+description = "Tools for validating and normalizing molecular dynamics simulation metadata extracted by Large Language Models."
+readme = "README.md"
+license = "BSD-3-Clause"
+authors = [
+    { name = "Ines Zenati", email = "ines-hana.zenati@etu.u-paris.fr" },
+    { name = "Pierre Poulain", email = "pierre.poulain@cupnet.net" },
+    { name = "Essmay Touami", email = "essmay.touami@etu.u-paris.fr" },
+]
+maintainers = [
+   { name = "Ines Zenati", email = "ines-hana.zenati@etu.u-paris.fr" }
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Intended Audience :: Science/Research",
+    "Topic :: Database",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Topic :: Scientific/Engineering :: Chemistry",
+]
+requires-python = ">=3.12"
+[dependency-groups]
+dev = [
+    "bandit>=1.9.3",
+    "prek>=0.3.2",
+    "pytest>=9.0.2",
+    "ruff>=0.15.1",
+]
+
+[build-system]
+requires = ["uv_build>=0.9.22,<0.10.0"]
+build-backend = "uv_build"
