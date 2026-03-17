@@ -64,7 +64,7 @@ p-ftaa
 plp
 pmhc
 popg
-sars-cov-2
+sars-cov-2 spike
 tpr
 ub
 arylamide
@@ -109,7 +109,7 @@ entf*
 fp-2
 gerab
 gtp
-hydrogen
+hydrogen sulfide
 ind
 kerogens
 lbf14
@@ -130,7 +130,7 @@ teixobactin
 ubiquitin
 adp
 carbohydrates
-cationic
+cationic lipid
 chloroxylenol
 chs
 glutamate
@@ -153,13 +153,13 @@ quinone
 rbd
 s
 saq
-spike
+spike protein
 surfactants
-t
+t cell receptor
 tetracycline
 4a8
 aac
-alanine
+alanine dipeptide
 alkane
 alkanes
 antibody
@@ -171,7 +171,7 @@ ceftazidime
 ceramide
 chl
 congocidine
-coronavirus
+coronavirus 2019-ncov protease
 cr3022
 ctab
 cu
@@ -183,7 +183,7 @@ ethanol
 exbox4+
 fyve
 glucoside
-glutamine
+glutamine synthetase
 glycoproteins
 gs
 gsh
@@ -196,7 +196,7 @@ ion
 k-ras4b
 kinase
 lanosterol
-lasso
+lasso peptide
 ligand
 lysine
 lysozyme
@@ -231,12 +231,12 @@ agos
 aldehydes
 amylase
 antibodies
-at-rich
+at-rich dna
 bptf
 ca
 cacl
 carbon
-carbon-based
+carbon-based nanomaterials
 carbonyl
 cat
 cations
@@ -247,15 +247,15 @@ com
 cu+
 cx50
 dag
-divalent
+divalent cations
 dlipc
 dmc
 dme
 dspc
 dspe
 elastin
-epoxy
-ethyl
+epoxy resins
+ethyl acetate
 fa2
 fdts
 flavonoid
@@ -269,12 +269,12 @@ gdpm
 glp-1r
 glutamine
 glycerol
-glycine
+glycine receptor
 glycolipids
 glycoprotein
 gm1
 go
-graphene
+graphene oxide
 h2
 hdm2
 hp
@@ -283,13 +283,13 @@ k+
 kras
 lanthanide
 laptm4b
-late
+late endosomal protein
 methacycline
 mg
 mrsa
 na
 nanodiamonds
-nitrogen
+nitrogen oxyanions
 no2
 no3
 nps
@@ -298,7 +298,7 @@ p-6p
 p-glycoprotein
 pdms
 peg
-perfluorinated
+perfluorinated alcohols
 pfo-bpy
 phosphoinositides
 pkc
@@ -308,18 +308,18 @@ pyr-1gp
 quinones
 rubisco
 sds
-sirt2
+sirt2 inhibitors
 smoothened
 sod1
 sodium
 sp-b
 sp-c
 spa
-superoxide
+superoxide dismutase 1
 tapc
 thiolate
 thrombin
-titanium
+titanium dioxide
 tricaproin
 tris-benzimidazole
 v7t1
@@ -332,7 +332,7 @@ vegf
 6vsb
 8arg
 ace2.
-acidic
+acidic zeolites
 ag
 aggac
 ago
@@ -340,12 +340,12 @@ air
 alkylsilane
 alpo-11
 amanitin
-aminobutyric
+aminobutyric acid
 amph
 amyloid
-amyloid
-amyloid
-ansamer
+amyloid beta
+amyloid fibrils
+ansamer amanitin
 apoe2
 arylamides
 aryldiazonium
@@ -359,46 +359,46 @@ bax
 benzene
 betaine
 bh4
-biliverdin
+biliverdin ix
 biocides
 bok
-boron
+boron nitride
 btk
 bv
 c15
 carbapenems
-carbon
+carbon dioxide
 carboxyl
-cellulose
-cholesteryl
-choline
+cellulose acetate
+cholesteryl ester transfer protein
+choline acetyltransferase
 chromatin
-chromonic
+chromonic mesogen
 chromophore
 cnt
 co2
 cr
 csra
 cx46
-cyclic
+cyclic peptides
 cyclodextrin
-cytochrome
+cytochrome c
 dapc
 darunavir
 dehydratase
 depc
 dialanine
 dihexadecylammonium
-dimeric
+dimeric protease
 dioleoyl-phosphatidylcholine
 dma
-dna
-dna
+dna aptamer
+dna gq
 dnpc
 dodecan-1-ol
-e.
+e. coli apo
 ec
-egg-white
+egg-white lysozyme
 electrolyte
 emre
 en2
@@ -407,8 +407,8 @@ ether-o
 ethylene
 fa1b
 fdh
-formate
-gaba
+formate dehydrogenase
+gaba transporter bgt1
 gasdermin-d
 gera
 glucose
@@ -419,12 +419,12 @@ gppnhp
 gqs
 grs
 hematoporphyrin
-hiv
-hiv
+hiv inhibitors
+hiv protein
 hkii-n
 hkv1
 hmi-1a3
-human
+human receptor ace2
 hydrocarbon
 hydrogen
 ibuprofen
@@ -434,13 +434,13 @@ kinesin
 kras-4b
 lam
 lasr
-lasso
+lasso peptides
 li+
 lipf6
 lm
 lnas
-macrophage
-malate
+macrophage migration inhibitory factor
+malate dehydrogenase
 mannose
 mcl-1
 mdm2
@@ -449,26 +449,26 @@ metalloenzyme
 methamphetamine
 mfi
 montmorillonite
-mt1
+mt1 receptor
 mt2
-mt2
+mt2 receptor
 mucinases
-n-3-oxododecanoyl
+n-3-oxododecanoyl homoserine lactone
 n-alkanes
-n-butylpyridinium
+n-butylpyridinium tetrafluoroborate
 n-dodecane
 n1-methylpseudouridine
 n6-methyladenosine
 ncs
 nelfinavir
 nh4+
-nitrile
+nitrile butadiene
 np
 ntd
 o-glycan
 octapeptide
 olefin-c
-orexin
+orexin receptor
 orexin-a
 p-divinylbenzene
 p2y1r
@@ -478,18 +478,18 @@ para-sexiphenyl
 pcs
 pedot:pss
 peptides
-periplasmic
-peroxynitrous
+periplasmic chaperone
+peroxynitrous acid
 ph-btbt-c10
 phe
 phenyl
-phenylalanine
+phenylalanine hydroxylase
 phenylalanine-4-hydroxylase
 phenytoin
 phla
 phosphatidylethanolamine
-phosphoinositol
-phospholipid
+phosphoinositol phosphate
+phospholipid translocase
 pic
 pnipaam
 polyamine
@@ -505,15 +505,15 @@ pyridinylimidazoles
 pyrimidoindole
 rnas
 saquinavir
-sars-cov-2
+sars-cov-2 spike protein
 sbls
 sept2
 sept7
 septins
-serine/threonine
+serine/threonine phosphatase
 silf
 sol
-stearoyl-coa
+stearoyl-coa desaturase
 sty
 tcr-pmhc
 tempo-pc
@@ -521,18 +521,18 @@ thermolysin
 thiq
 tipranavir
 tma
-transcriptional
-tri-n-butyl
-tyrosine
+transcriptional regulator
+tri-n-butyl phosphate
+tyrosine kinase
 ubisemiquinone
-unguisin
-villin
+unguisin a
+villin headpiece
 vrc01
 xla
 xyloglucan
-zwitterionic
-α-conotoxin
-α3β2
+zwitterionic dmpc
+α-conotoxin lsia
+α3β2 nachr
 (s)-norcoclaurine
 1,2-diauroyl-sn-glycero-3-phospocholine
 1,2-dioleoyl-sn-glycero-3-phosphocholine
@@ -546,7 +546,7 @@ zwitterionic
 2-mp
 2-phenylpropane
 2-thiopyridone
-2019ncov
+2019ncov virus protease
 2hno3
 2mesadp
 2rjy
@@ -566,12 +566,12 @@ a-amanitin
 aaaqaaqaqwaqrqatwqa
 abeta
 abeta42
-abietic
-ace2
+abietic acid
+ace2 receptor
 acetyl
 acryl
-activator/regulator
-acyclic
+activator/regulator complexin
+acyclic 2,3-oxidosqualene
 aggax
 alcohol
 alcohols
@@ -583,25 +583,25 @@ am
 am0627
 amide
 amide-i
-amino
+amino acid
 amphetamine
-amphiliphic
-amphiphilic
-amphiphilic
+amphiliphic ligands
+amphiphilic np
+amphiphilic nps
 amps
-angiotensin
-angiotensin-converting
-anionic
+angiotensin converting enzyme ii
+angiotensin-converting enzyme 2
+anionic ubisemiquinone
 anions
 anti-sars-cov-2
-antibody
+antibody fab
 apo
-apo
+apo rnases h
 aptamer
 arg-393
 arylindenols
-arylurea
-aspartic
+arylurea derivatives
+aspartic acid
 at-rich
 atad2
 axggax
@@ -609,140 +609,140 @@ az
 az-ab42
 azobioisostere-abeta42
 b-dna
-b-raf
+b-raf inhibitors
 bacterioferritin
 baz2b
 bcl-2
 benzodiazepinedione
 benzylisoquinoline
 berberine
-beta
+beta lactamases
 bisphosphates
 bn
 borohydride
-boron
+boron nitride nanotube
 bptu
 bpy1,3-tfsi
 bpy1,4-tfsi-li
-brd4
-bruton's
+brd4 bd2
+bruton's tyrosine kinase
 bt4244
 c-h
 c16
 ca2+
-ca2+-sensor
+ca2+-sensor synaptotagmin
 calix-[4]-arenes
 calix[n]arenes
 carbapenemase
-carbon
-carbon
-carbon
-carbonic
-carbonyl
-carboxynaphthalene
-cardiac
-cardiac
+carbon nanomaterial
+carbon nanomaterials
+carbon nanotube
+carbonic anhydrase ii
+carbonyl oxygen
+carboxynaphthalene disulfide
+cardiac troponin c
+cardiac troponin protein
 carotene
 cefoperazone
 cellobiose
 cephalosporin
 ceramides
 cetyl
-cetyltrimethylammonium
+cetyltrimethylammonium bromide
 cftr
-cg
+cg protein
 cha
 chabazite
 chignolin
 chl1
 chloride
-chloride
+chloride counterions
 chloroform
-chlorophyll
+chlorophyll a
 cholesterols
-cholesteryl
-choline
+cholesteryl hemisuccinate
+choline chloride
 chromophores
 chromosomes
-clathrate
-clathrate
+clathrate hydrate
+clathrate hydrates
 clr
 collagen
-connexin
-connexin
+connexin 46
+connexin 50
 connexin-46/50
 coo
 cooh
 copper
-counter
-covid2
+counter ions
+covid2 spike
 covid2spike
 crebbp
 ctn
 cul3
 cullin3
-curcumin
+curcumin azobioisostere
 cyanine
 cyclophane
 cyclophanes
 cysteine
 cyt
-cyt
+cyt bo3
 cytochrome
-cytochrome
-d
+cytochrome bo3
+d alpo-
 d-c14-pc
 d-c18-pc
 d33e
 dabrafenib
 dc-sign
 dec
-destabilized
-di-,
+destabilized superoxide dismutase 1
+di-, tri- and tetra-ubiquitin
 di-ubiquitin
 diacylglycerol
 dianions
-diethyl
+diethyl carbonate
 dihydrate
-dimeric
+dimeric main protease
 dimethoxyethane
-dimethyl
-dimethyl
-dimethylallyl
+dimethyl carbonate
+dimethyl sulfoxide
+dimethylallyl disphosphate
 dioctylfluorene
 dipeptides
-diphenyl
-diphenyl
-diphenyl
+diphenyl diselenide
+diphenyl diselenides
+diphenyl ditellurides
 dmf5
-dna
-dna
+dna g-quadruplex
+dna gqs
 dodecyl
 dope
-doxyl-labeled
+doxyl-labeled lipids
 dppe
 dpsm
 dtab
-e-chalcone
-e.
-e.
-e.
+e-chalcone 48
+e. coli cytoplasm
+e. coli ompf
+e. coli ribonuclease h
 e1
-e3
+e3 ligase
 ec48
-ed
-elusive
-epoxy
+ed alpo
+elusive arenium
+epoxy resin
 ethanolamine
 ethene
 ethyl
-ethylene
+ethylene carbonate
 etidocaine
 exendin-4
 exendin-p5
 f
 fa2b
-factor
+factor h
 falcipain-2
 fau
 faujasite
@@ -755,31 +755,31 @@ fmoc-dipeptide
 folic
 folinic
 formate
-fused
-g
+fused in sarcoma
+g protein
 g1-pamam
 gd
 gdp-mannose
 gelsolin
 geraa
 gerac
-germinant
+germinant receptors
 gl1
 glp-1
 glu-35
 glu-37
-glucagon-like
+glucagon-like peptide receptor
 glucocorticoids
 glucosidases
-glycerol
+glycerol trihexanoate
 glycine
 glycopeptides
 glycosyl
-gold
+gold nanoparticles
 gpcrs
 gpis
-graphene
-gs
+graphene oxides
+gs protein
 gtpase
 gva
 h
@@ -787,10 +787,10 @@ h-ras
 h3k27ac
 h3k9ac
 hbgt1
-heat
-heat-shock
+heat shock protein 90
+heat-shock protein 90
 heme
-heme
+heme b
 hexane
 hexokinase-ii
 hexylthiophene
@@ -798,51 +798,51 @@ histone
 hkii
 hno2
 hp2y1r
-human
-human
-human
-human
-human
-human
-hydrogenated
+human and e. coli thioredoxins
+human cathepsins
+human formin-binding protein 21
+human lysozyme
+human smoothened
+human thioredoxin
+hydrogenated alcohols
 hydronium
 hydroxyl
 hydroxymethyl
-igg4
+igg4 antibody
 imidazole
 indenols
-isopentenyl
+isopentenyl diphosphate
 isophthalate
-k+
-kelch-like
+k+ channel
+kelch-like ech-associated protein-1
 ketones
 l-valine
 l1
 leubethanol
 li-/na-ion
-lipid
+lipid acyl
 lipoarabinomannan
 lipoglycans
 lipomannan
 liposome
 lnx2
-locked
+locked nucleic acid
 lys-353
 lysines
 m
-malarial
+malarial m1 aminopeptidase
 maldh
 maltopentose
 mapk
 mart1
-mart1
+mart1 peptide-major histocompatibility complexes
 mdia2
 mek
-melatonin
+melatonin receptors
 meoh
-metal
-metal
-methicillin-resistant
+metal ion
+metal ions
+methicillin-resistant staphylococcus aureus
 methionine
 methotrexate
 methylene
@@ -863,10 +863,10 @@ myeloid
 n,n-dimethylformamide
 n-alkane
 n-doxyl
-n-doxyl
+n-doxyl pc
 n-hexadecane
 n-isopropylacrylamide
-n-methyl-d-aspartate
+n-methyl-d-aspartate receptors
 n-octacosane
 n-octane
 n-pentadecane
@@ -875,54 +875,54 @@ nag26
 nanocellulose
 nanodiamond
 ncps
-nf-e2-related
+nf-e2-related factor 2
 nf-κb
 nh2
-nitric
+nitric acid
 nitrogen
-nmda
+nmda receptor
 nmdars
-non-structural
-norcoclaurine
+non-structural (ns) proteins 1
+norcoclaurine synthases
 ns1
-ns1
+ns1 zikv
 ns2b-ns3
-ns2b-ns3
+ns2b-ns3 dengue protease
 ns2b-ns3pro
 nucleotide
 nutlin-2
 nwasp
-octyl
+octyl trimethyl ammonium bromide
 oleoyl
 oligopeptide
 oligophenylenes
 oligophenylenevinylene
 oligothiophene
 oncoprotein
-organic
+organic semiconductors
 otab
-ox2
-oxa-48
-oxidosqualene
+ox2 receptor
+oxa-48 β‑lactamases
+oxidosqualene cyclase
 oxygen
 oxyntomodulin
-p-loop
+p-loop ntpases
 p-polyphenylene
 p0dtc2
-p2y1
-pa
+p2y1 receptor
+pa phosphate
 palmitoyl-coa.
-palmitoyl-coenzyme
+palmitoyl-coenzyme a
 papain
-para-sulfonated
+para-sulfonated calix-[4]-arenes
 para-sulfonato-calix[4]arenes
-pc
+pc phosphate
 pc-lipid
 pd2l4
-pentameric
+pentameric formyl thiophene acetic acid
 pentane
 pep-synthase
-peptide-major
+peptide-major histocompatibility complex
 peptidyl
 peroxynitrite
 phas
@@ -932,19 +932,19 @@ pheophytin
 phosophoinositides
 phosphates
 phosphatidyl-myo-inositol
-phosphatidyl-myo-inositol
+phosphatidyl-myo-inositol mannosyltransferase a
 phosphatidylcholines
 phosphatidylglycerol
-phosphatidylinositol
-phosphatidylinositol
-phosphatidylinositol
+phosphatidylinositol bisphosphate
+phosphatidylinositol hexamannosides
+phosphatidylinositol phosphate
 phosphocholine
-phosphoenolpyruvate
+phosphoenolpyruvate synthase
 phosphoinositol
 pim6
 pims
-plasmodial
-plasmodium
+plasmodial cysteine protease
+plasmodium falciparum m1 alanyl aminopeptidase
 plastoquinol
 plastoquinone
 plx7904
@@ -952,107 +952,107 @@ pmhcs
 pnipaam-co-acrylamide
 pnipaam-co-dimethylacrylamide
 poly-phosphatidylinositols
-polycyclic
+polycyclic aromatic hydrocarbons
 polyethylene
-polyproline
+polyproline ii
 polypropylene
 polysaccharide
-polystyrene
-popc
-precambrian
-precambrian
-pristine
-pristine
+polystyrene sulfonate
+popc acyl
+precambrian enzymes
+precambrian proteins
+pristine carbon
+pristine graphene
 propane
 propanol
 proteasome
 protegens
-protein
-protein
-protein
-proteinogenic
-proteolysis-targeting
-proteolysis-targeting
+protein kinase b
+protein kinase c
+protein kinase g
+proteinogenic amino acids
+proteolysis-targeting chimera
+proteolysis-targeting chimeras
 pseudoisocyanine
 pyrimidine
-quaterphenylene
+quaterphenylene dicarbonitriles
 raf
-receptor
+receptor binding domain
 rhamnose
 rna
 rnase
-rnase
-s
-s1
+rnase h
+s protein
+s1 nuclease
 saccharides
-sars-cov-2
-sars-cov-2
-sars-cov-2
-sars-cov-2
-sars-cov-2
-sars-cov2
+sars-cov-2 dimeric main protease
+sars-cov-2 main protease
+sars-cov-2 mpro
+sars-cov-2 rbd
+sars-cov-2 receptor-binding domain
+sars-cov2 spike
 sclareol
 se
 selenium
 sept6
 serine
-serine
-serine/threonine
+serine β-lactamases
+serine/threonine kinases
 siap
 sio2
-sirtuin
-sn-2
+sirtuin 2
+sn-2 stearoyl
 snares
-socony
-sodium
-sodium
-soluble
+socony mobil-5
+sodium dodecyl sulfate
+sodium thiosulfate
+soluble n-ethylmaleimide sensitive factor attachment protein receptor
 sopc
 sorafenib
 spike
-staphylococcal
+staphylococcal nuclease
 sterol
 sucrose
-sugar
-t4
+sugar monomers
+t4 lysozyme
 tba15
 te
-ted
-tellurium
+ted alp
+tellurium diphenyl dichalcogenides
 terephthalate
 terpenoid
 tetra-alanine
-tetrabutylammonium
-tetracyclic
+tetrabutylammonium halides
+tetracyclic lanosterol
 tetrahydrofuran
 tetrahydroisoquinoline
 tetramethylammonium
-tetrapyrrole
+tetrapyrrole chromophore
 tfncs
-thalictrum
+thalictrum flavum ncs
 thiqs
 threonine
 tk-hefu
-toll-like
+toll-like receptor 4
 trans-4-hydroxy-l-proline
 trehalose
 triglyceride
 tripeptides
 tropocollagen
-trypsin
+trypsin inhibitor
 tryptathionine
 tyr-83
 ubiquinol
-ubiquitin
-ubiquitin
-ubiquitin
+ubiquitin conjugating enzymes
+ubiquitin e3 ligase
+ubiquitin ligase
 urea
 uridine
-vascular
+vascular endothelial growth factor
 vemurafenib
 walp23
-x-linked
-zirconium
+x-linked agammaglobulinemia
+zirconium nitrate
 zn
 zwitterionic
 β-lactam
