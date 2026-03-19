@@ -6,7 +6,7 @@ This module provides regular expression matching operations.
 import re
 
 
-def norm_temp(temp_str):
+def norm_temp(temp_str: str) -> str:
     """Normalize the value of a temperature.
 
     Parameters
@@ -34,17 +34,16 @@ def norm_temp(temp_str):
     temperature_match = re.search(r"([0-9]+)(\.?[0-9]+)?( *°? *[a-z]*)?", temp_str)
     if temperature_match is None:
         return "No matches found"
-    temperature_integer_part = temperature_match.group(1)  # We fetch the integer part
-    temperature_decimal_part = temperature_match.group(2)  # We fetch the decimal part
-    temperature_unit = temperature_match.group(3)  # We fetch the unit part
-
+    temperature_integer_part = temperature_match.group(1)
+    temperature_decimal_part = temperature_match.group(2)
+    temperature_unit = temperature_match.group(3)
     # Fetching the temperature value and casting to int or float
     if temperature_decimal_part is not None:
-        temperature_value = (float)(
+        temperature_value = float(
             temperature_integer_part + temperature_decimal_part.strip()
         )
     else:
-        temperature_value = (int)(temperature_integer_part)
+        temperature_value = int(temperature_integer_part)
 
     # Fetching the unit and converting to kelvin when needed
     if temperature_unit is not None:
@@ -57,7 +56,7 @@ def norm_temp(temp_str):
             temperature_value += 273.15
             temperature_unit = "k"
 
-    temp_norm = (str)(
+    temp_norm = str(
         temperature_value
     ) + temperature_unit  # We build the output string
     return temp_norm
@@ -65,7 +64,7 @@ def norm_temp(temp_str):
 
 if __name__ == "__main__":
     # Testing different cases of temp normalisation
-    test = [
+    examples_temperature = [
         "300",
         "300 k",
         "27",
@@ -76,5 +75,5 @@ if __name__ == "__main__":
         "310.15°K",
         "20 Celsius",
     ]
-    for t in test:
-        print(f"norm_temp('{t}') = {norm_temp(t)}")
+    for temperature in examples_temperature:
+        print(f"norm_temp('{temperature}') = {norm_temp(temperature)}")
