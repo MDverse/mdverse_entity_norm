@@ -10,7 +10,7 @@ slipids
 spc
 charmm36m
 gromos
-gromos
+gromos 54a7
 trappe
 43a1-s3
 amber99sb-ildn
@@ -22,45 +22,45 @@ spc/e
 amber99sb-ildb
 c36mcu
 charmm27
-charmm36
-general
-gromos
+charmm36 (v. june 2015)
+general amber force field
+gromos 43a1-s3
 gromos87
 opc3
 opls-aa
 rsff2
 sirah
-williams
-amber
-amber
-amber
-amber
+williams 7b
+amber bsc1
+amber ff03ws
+amber ff14sb
+amber lipid17
 c22*
 c36m
-charmm
+charmm c36
 compass
 ecc-lipids
 ecc-popc
 ff99sb-ildn-nmr
 ff99sb-ildn-phi
 gaff2
-martini
+martini 2
 mpipi
 ol15
 pys
 ulmschneider
 williams
 'berger
-amber
-amber
+amber ff99sb
+amber ff99sb-ildn
 amber14
 amber14sb
 amoeba
 autodock
 bind3p
 c36m.
-charmm
-charmm36
+charmm 27
+charmm36 forcefield (version july 2020)
 charmm36m.
 charmm36mw
 ff03
@@ -72,16 +72,16 @@ ff99sb*
 ff99sb-ildn
 gap
 gdml
-generalized
-gromos
+generalized amber force field
+gromos 53a6
 gromos54a7
 l-opls
 lipid14
 lipid17
-martini
-martini
-martini
-martini
+martini 2.2p
+martini 3
+martini 3.0
+martini cg
 opls-aa/m
 parm99
 parmbsc0
