@@ -156,16 +156,23 @@ def call_gilda(entity_name: str):
     dict : Details retrieved from the chebi dtabase (id, score, name)
     """
     results = gilda.ground(entity_name)
-    logger.debug(results[0].term.id)
-    return results
-    # if results is not None:
-    #     first = results[0]
-    #     return {
-    #         "id": f"{first.term.db}:{first.term.id}",
-    #         "name": first.term.entry_name,
-    #         "score": round(first.score, 4),
-    #     }
-    # return None
+    if results is not None and len(results) > 0:
+        grounding_res = results[0].to_json()
+        logger.info(
+            f"Gilda grounding results found for `{entity_name}` : "
+            f"{grounding_res['term']['id']}"
+        )
+        (logger.info(f"Database : {grounding_res['term']['db']}"),)
+        result_dict = {
+            "db": grounding_res["term"]["db"],
+            "id": grounding_res["term"]["id"],
+            "score": grounding_res["score"],
+            "name": grounding_res["term"]["text"],
+            "url": grounding_res["url"],
+        }
+        return result_dict
+    else:
+        logger.warning(f"No grounding results found for `{entity_name}` using GILDA.")
 
 
 def grounding_gilda(mol_file: str, ground_mol_file: str):
@@ -178,14 +185,14 @@ def grounding_gilda(mol_file: str, ground_mol_file: str):
 
     """
     with open(mol_file) as f1, open(ground_mol_file, "w") as f2:
-        f2.write("Entity_name\tGilda_ID\tGilda_Name\tScore\n")
+        f2.write("Entity_name\tDatabase\tGilda_ID\tScore\tGilda_Name\tURL\n")
 
         for line in f1:
             result = call_gilda(line.strip())
 
             if result:
                 f2.write(
-                    f"{line.strip()}\t{result['id']}\t{result['name']}\t{result['score']}\t{result['url']}\n"
+                    f"{line.strip()}\t{result['db']}\t{result['id']}\t{result['score']}\t{result['name']}\t{result['url']}\n"
                 )
             else:
                 f2.write(
@@ -194,6 +201,9 @@ def grounding_gilda(mol_file: str, ground_mol_file: str):
 
 
 if __name__ == "__main__":
-    # grouding_mol("data/MOL.txt", "results/ground_mol_chebi.tsv")
-    call_gilda("1-palmitoyl-2-oleoyl-sn-glycero-3-phosphocholine")
-    # grounding_gilda("data/MOL.txt", "results/ground_mol_gilda.tsv")
+    logger.info("Starting molecule grounding...")
+    grouding_mol("data/MOL.txt", "results/ground_mol_chebi.tsv")
+    logger.success("Molecule grounding completed.")
+    logger.info("Starting Gilda grounding...")
+    grounding_gilda("data/MOL.txt", "results/ground_mol_gilda.tsv")
+    logger.success("Gilda grounding completed.")
