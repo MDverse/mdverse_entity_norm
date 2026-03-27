@@ -52,37 +52,6 @@ def get_type(entry: str):
         return "CHEBI"
 
 
-def grouding_mol(mol_file: str, ground_mol_file: str):
-    """Ground the mollecule to the appropriate databases.
-
-    Parameters
-    ----------
-    mol_file (str): Path to the input file containing molecular identifiers
-    """
-    # Open and read the MOL.txt file line by line
-    with open(mol_file) as f1, open(ground_mol_file, "w") as f2:
-        f2.write("Nom_lu\tType\tID_CHEBI\tNom_ASCII\tScore\tStars\n")
-        for line in f1:
-            entity_type = get_type(line.strip())
-
-            # Determines the string that will be used to call the appropriate API
-            if entity_type == "PDB":
-                call_PDB(line.strip())
-            if entity_type == "UNIPROT":
-                call_uniprot(line.strip())
-            if entity_type == "CHEBI":
-                result = call_chebi(line.strip())
-                if result is not None:
-                    f2.write(
-                        f"{line.strip()}\t{entity_type}\t{result['chebi_id']}\t{result['name']}\t{result['score']}\t{result['star']}\n"
-                    )
-                else:
-                    f2.write(
-                        f"{line.strip()}\t{entity_type}\tNot Found\tNot Found"
-                        f"\tNA\tNot Found\n"
-                    )
-
-
 def call_PDB(code_pdb: str):  # noqa: N802
     """Query the Protein Data Bank API for a given PDB code.
 
@@ -94,6 +63,7 @@ def call_PDB(code_pdb: str):  # noqa: N802
     # If request is successful (HTTP 200), print the response links
     if response.status_code == 200:
         logger.info(f"PDB {code_pdb}: {response.url}")
+    return response
 
 
 def call_uniprot(code_uniprot: str):
@@ -174,6 +144,67 @@ def call_gilda(entity_name: str):
         logger.warning(f"No grounding results found for `{entity_name}` using GILDA.")
 
 
+def grouding_mol_chebi(mol_file: str, ground_mol_file: str):
+    """Ground the molecule to the chebi databases.
+
+    Parameters
+    ----------
+    mol_file (str): Path to the input file containing molecular identifiers
+    """
+    # Open and read the MOL.txt file line by line
+    with open(mol_file) as f1, open(ground_mol_file, "w") as f2:
+        f2.write("Entry\tType\tID_CHEBI\rName\tScore\tStars\n")
+        for line in f1:
+            entity_type = get_type(line.strip())
+            if entity_type == "CHEBI":
+                result = call_chebi(line.strip())
+                if result is not None:
+                    f2.write(
+                        f"{line.strip()}\t{entity_type}\t{result['chebi_id']}\t{result['name']}\t{result['score']}\t{result['star']}\n"
+                    )
+                else:
+                    f2.write(
+                        f"{line.strip()}\t{entity_type}\tNot Found\tNot Found"
+                        f"\tNA\tNot Found\n"
+                    )
+
+
+def grouding_mol_pdb(mol_file: str, ground_mol_file: str):
+    """Ground the mollecule to the PDB database.
+
+    Parameters
+    ----------
+    mol_file (str): Path to the input file containing molecular identifiers
+    """
+    with open(mol_file) as f1, open(ground_mol_file, "w") as f2:
+        f2.write("Entity_name\tType\tID_PDB\n")
+        for line in f1:
+            entity_type = get_type(line.strip())
+            if entity_type == "PDB":
+                call_PDB(line.strip())
+                f2.write(f"{line.strip()}\t{entity_type}\t{line.strip()}\n")
+            else:
+                f2.write(f"{line.strip()}\t{entity_type}\tNot Found\n")
+
+
+def grouding_mol_uniprot(mol_file: str, ground_mol_file: str):
+    """Ground the mollecule to the UniProt database.
+
+    Parameters
+    ----------
+    mol_file (str): Path to the input file containing molecular identifiers
+    """
+    with open(mol_file) as f1, open(ground_mol_file, "w") as f2:
+        f2.write("Entity_name\tType\tID_UNIPROT\n")
+        for line in f1:
+            entity_type = get_type(line.strip())
+            if entity_type == "UNIPROT":
+                call_uniprot(line.strip())
+                f2.write(f"{line.strip()}\t{entity_type}\t{line.strip()}\n")
+            else:
+                f2.write(f"{line.strip()}\t{entity_type}\tNot Found\n")
+
+
 def grounding_gilda(mol_file: str, ground_mol_file: str):
     """Create an output file containing the informations from the gild agrounding.
 
@@ -200,8 +231,8 @@ def grounding_gilda(mol_file: str, ground_mol_file: str):
 
 
 if __name__ == "__main__":
-    logger.info("Starting molecule grounding...")
-    grouding_mol("data/MOL.txt", "results/ground_mol_chebi.tsv")
+    logger.info("Starting molecule grounding from Chebi...")
+    grouding_mol_chebi("data/MOL.txt", "results/ground_mol_chebi.tsv")
     logger.success("Molecule grounding completed.")
     logger.info("Starting Gilda grounding...")
     grounding_gilda("data/MOL.txt", "results/ground_mol_gilda.tsv")
