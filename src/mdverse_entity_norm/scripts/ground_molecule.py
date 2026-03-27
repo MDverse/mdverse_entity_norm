@@ -78,9 +78,8 @@ def grouding_mol(mol_file: str, ground_mol_file: str):
                     )
                 else:
                     f2.write(
-                        f"{line.strip()}\t"
-                        f"{entity_type}\t"
-                        f"Not found\tNot found\tNot found\tNot found\n"
+                        f"{line.strip()}\t{entity_type}\tNot Found\tNot Found"
+                        f"\tNA\tNot Found\n"
                     )
 
 
@@ -196,7 +195,7 @@ def grounding_gilda(mol_file: str, ground_mol_file: str):
                 )
             else:
                 f2.write(
-                    f"{line.strip()}\tNOT_FOUND\tNOT_FOUND\tNOT_FOUND\tNOT_FOUND\n"
+                    f"{line.strip()}\tNOT_FOUND\tNOT_FOUND\tNA\tNOT_FOUND\tNOT_FOUND\n"
                 )
 
 
