@@ -48,7 +48,8 @@ us
 167ns
 190 ns
 20
-200
+20 ns
+200-300ns
 27ns
 298k
 3 μs
@@ -84,3 +85,4 @@ us
 87 microsecond
 multi-microsecond
 nanosecond
+one hundred nanosecond

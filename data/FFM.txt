@@ -1,26 +1,25 @@
 charmm36
 martini
-charmm
 amber
 tip3p
+charmm
 gaff
-opc
 berger
+opc
 slipids
 spc
 charmm36m
 gromos
 gromos 54a7
 trappe
-43a1-s3
 amber99sb-ildn
 amoeba+
 gafflipid
 gal17
-opls
-spc/e
 amber99sb-ildb
+c36m
 c36mcu
+charmm c36
 charmm27
 charmm36 (v. june 2015)
 general amber force field
@@ -39,6 +38,7 @@ c22*
 c36m
 charmm c36
 compass
+ecc-ions
 ecc-lipids
 ecc-popc
 ff99sb-ildn-nmr
@@ -46,9 +46,9 @@ ff99sb-ildn-phi
 gaff2
 martini 2
 mpipi
-ol15
+opls
+poger gromos 53a6_l
 pys
-ulmschneider
 williams
 'berger
 amber ff99sb
@@ -63,6 +63,7 @@ charmm 27
 charmm36 forcefield (version july 2020)
 charmm36m.
 charmm36mw
+dang
 ff03
 ff03*
 ff03w
@@ -83,12 +84,14 @@ martini 3
 martini 3.0
 martini cg
 opls-aa/m
-parm99
+parm99_lna
 parmbsc0
 q4md-cd
 rsff1
 schnet
+sl
 tip
 tip4p-ew
 tip4p/2005
 trappe-ua
+βol15
