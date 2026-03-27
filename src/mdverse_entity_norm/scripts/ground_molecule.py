@@ -58,12 +58,29 @@ def call_PDB(code_pdb: str):  # noqa: N802
     Parameters
     ----------
     code_pdb (str): 4-character PDB identifier code
+
+    Returns
+    -------
+    dict: Details retrieved from the PDB database (entry_id, pubmed_id, doi, emdb_id)
     """
     response = httpx.get(f"{API_PDB}{code_pdb}", timeout=10)
     # If request is successful (HTTP 200), print the response links
     if response.status_code == 200:
         logger.info(f"PDB {code_pdb}: {response.url}")
-    return response
+        results = response.json()
+        return {
+            "pubmed_id": results.get("rcsb_primary_citation", {}).get(
+                "pdbx_database_id_pub_med"
+            ),
+            "doi": results.get("rcsb_primary_citation", {}).get("pdbx_database_id_doi"),
+            "title": results.get("struct", {}).get("title"),
+            "rcsb_id": results.get("rcsb_id"),
+        }
+    else:
+        logger.warning(
+            f"Status HTTP : {response.status_code} "
+            f"(The server can't process your request for `{code_pdb}`)"
+        )
 
 
 def call_uniprot(code_uniprot: str):
@@ -177,14 +194,20 @@ def grouding_mol_pdb(mol_file: str, ground_mol_file: str):
     mol_file (str): Path to the input file containing molecular identifiers
     """
     with open(mol_file) as f1, open(ground_mol_file, "w") as f2:
-        f2.write("Entity_name\tType\tID_PDB\n")
+        f2.write("Entity_name\tType\tID_PDB\tTittle\tpubmed_id\tdoi\n")
         for line in f1:
             entity_type = get_type(line.strip())
             if entity_type == "PDB":
-                call_PDB(line.strip())
-                f2.write(f"{line.strip()}\t{entity_type}\t{line.strip()}\n")
-            else:
-                f2.write(f"{line.strip()}\t{entity_type}\tNot Found\n")
+                result = call_PDB(line.strip())
+                if result is not None:
+                    f2.write(
+                        f"{line.strip()}\t{entity_type}\t{result['rcsb_id']}\t{result['title']}\t{result['pubmed_id']}\t{result['doi']}\n"
+                    )
+                else:
+                    f2.write(
+                        f"{line.strip()}\t{entity_type}\tNot Found\tNot Found"
+                        f"\tNot Found\tNot Found\n"
+                    )
 
 
 def grouding_mol_uniprot(mol_file: str, ground_mol_file: str):
@@ -231,9 +254,17 @@ def grounding_gilda(mol_file: str, ground_mol_file: str):
 
 
 if __name__ == "__main__":
-    logger.info("Starting molecule grounding from Chebi...")
-    grouding_mol_chebi("data/MOL.txt", "results/ground_mol_chebi.tsv")
+    # Grounding the molecule to PDB database
+    logger.info("Starting molecule grounding from PDB...")
+    grouding_mol_pdb("data/MOL.txt", "results/ground_mol_pdb.tsv")
     logger.success("Molecule grounding completed.")
-    logger.info("Starting Gilda grounding...")
-    grounding_gilda("data/MOL.txt", "results/ground_mol_gilda.tsv")
-    logger.success("Gilda grounding completed.")
+    # Grounding the molecule to uniprot database
+
+    # # Grounding the molecule to chebi database
+    # logger.info("Starting molecule grounding from Chebi...")
+    # grouding_mol_chebi("data/MOL.txt", "results/ground_mol_chebi.tsv")
+    # logger.success("Molecule grounding completed.")
+    # # Grounding the molecule with gilda
+    # logger.info("Starting Gilda grounding...")
+    # grounding_gilda("data/MOL.txt", "results/ground_mol_gilda.tsv")
+    # logger.success("Gilda grounding completed.")
