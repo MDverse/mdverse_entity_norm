@@ -10,7 +10,6 @@ slipids
 spc
 charmm36m
 gromos
-spc/e
 gromos 54a7
 trappe
 amber99sb-ildn
@@ -23,20 +22,21 @@ c36mcu
 charmm c36
 charmm27
 charmm36 (v. june 2015)
+general amber force field
 gromos 43a1-s3
 gromos87
 opc3
 opls-aa
 rsff2
 sirah
-ulmschneider
 williams 7b
-wt4
 amber bsc1
 amber ff03ws
 amber ff14sb
 amber lipid17
 c22*
+c36m
+charmm c36
 compass
 ecc-ions
 ecc-lipids
@@ -44,33 +44,24 @@ ecc-popc
 ff99sb-ildn-nmr
 ff99sb-ildn-phi
 gaff2
-general amber force field
-generalized amber force field
-gromos 53a6
-lipid14
-lipid17
 martini 2
 mpipi
 opls
 poger gromos 53a6_l
 pys
 williams
-43a1-s3
-54a7
-amber ff15ipq
+'berger
 amber ff99sb
 amber ff99sb-ildn
-amber10:extended huckel theory (eht)
 amber14
 amber14sb
 amoeba
 autodock
 bind3p
-bpy1,3-tfsi
-c36
+c36m.
 charmm 27
-charmm tip3p
 charmm36 forcefield (version july 2020)
+charmm36m.
 charmm36mw
 dang
 ff03
@@ -82,16 +73,16 @@ ff99sb*
 ff99sb-ildn
 gap
 gdml
-gromos 56a6carbo/carbo_r
+generalized amber force field
+gromos 53a6
 gromos54a7
 l-opls
+lipid14
+lipid17
 martini 2.2p
 martini 3
 martini 3.0
 martini cg
-martini coarse-grained (cg) force field (v. 2.2)
-nb-fix
-ol15
 opls-aa/m
 parm99_lna
 parmbsc0

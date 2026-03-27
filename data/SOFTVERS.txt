@@ -5,8 +5,9 @@
 5.0.3
 5.1.4
 2020
-v. 2016.4
-v. 5.1
+5.0.3
+(v. 2016.4)
+16
 19
 2016.1
 2018.3
@@ -15,10 +16,11 @@ v. 5.1
 4
 5.1.1
 7
-v5
+(dec 2018, stable)
+(v. 2020)
+(v4.6)
 1.9.3
 16 rev b01
-16 rev. b.01, 2016
 2.0
 2.11b2
 2.6.3
@@ -42,15 +44,16 @@ v5
 5.1
 5.1.5
 5.1.x
-dec 2018, stable
+molecular dynamics
+simulation engine v5
+simulation engine version 2019.4
+software (v. 2016.4)
 stable dec. 2018
-v. 2020
-v. 5.0
+tools
 v.4.6.5
 v2.4
 v4.6
 v9.16
 version 2.6.0
-version 2019.4
 version 4.6
 vina

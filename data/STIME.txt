@@ -1,25 +1,25 @@
 500ns
 100ns
 200 ns
-500 ns
 microsecond
+500 ns
 1 microsecond
-100 ns
 200ns
+100 ns
 110 ns
 1500 ns
 300 ns
-50 ns
-1 ns
+315.0 k
 1 μs
 10 microseconds
 1000 ns
-1microsecond
 2 microseconds
 250 ns
-250ns
 3.0 us
+317.0 k
+319.1 k
 5 μs
+50 ns
 550ns
 700ns
 us
@@ -27,6 +27,7 @@ us
 0.6
 0.633 us
 0.79 ns
+1 ns
 1 µs
 1.0 us
 1.5 micro-sec
@@ -35,8 +36,8 @@ us
 10 ns
 10 µs
 10 μs
+100
 100 nanoseconds
-100-200ns
 100–200 ns
 1069 ns
 1080 ns
@@ -44,7 +45,6 @@ us
 12 μs
 120ns
 125 ns
-150 ns
 167ns
 190 ns
 20
@@ -57,11 +57,15 @@ us
 300 k
 300 nanoseconds
 3000 ns
+300ns
+316.7 k
+318.4 k
+320.1 k
+321.8 k
 36 μs
 360 ns
 370 ns
 380 ns
-4-microsecond
 4.1 us
 40 ns
 40ns
@@ -77,10 +81,8 @@ us
 6microseconds
 6µs
 8 microseconds
-80 ns
 800 ns
 87 microsecond
-hundred nanosecond
 multi-microsecond
 nanosecond
 one hundred nanosecond
