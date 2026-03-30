@@ -9,6 +9,7 @@ import re
 
 import gilda
 import httpx
+import numpy as np
 from loguru import logger
 
 # API endpoints for different molecular databases
@@ -193,7 +194,7 @@ def grouding_mol_chebi(mol_file: str, ground_mol_file: str):
                 else:
                     f2.write(
                         f"{line.strip()}\t{entity_type}\tCHEBI\tNot Found\tNA"
-                        f"\tNot Found\tNot Found\n"
+                        f"\t{np.nan}\tNot Found\n"
                     )
 
 
@@ -248,7 +249,7 @@ def grounding_gilda(mol_file: str, ground_mol_file: str):
     Parameters.
     ----------
     mol_file (str) : name of the input file
-    ROUND_mol_file (str) : name of the output file
+    ground_mol_file (str) : name of the output file
 
     """
     with open(mol_file) as file_1, open(ground_mol_file, "w") as f2:
@@ -258,15 +259,14 @@ def grounding_gilda(mol_file: str, ground_mol_file: str):
             entity_type = get_type(line.strip())
             if entity_type == "CHEBI/GILDA":
                 result = call_gilda(line.strip())
-
-            if result:
-                f2.write(
-                    f"{line.strip()}\t{entity_type}\t{result['db']}\t{result['id']}\t{result['score']}\t{result['name']}\t{result['url']}\n"
-                )
-            else:
-                f2.write(
-                    f"{line.strip()}\t{entity_type}\tNOT_FOUND\tNA\tNOT_FOUND\tNOT_FOUND\tNOT_FOUND\n"
-                )
+                if result is not None:
+                    f2.write(
+                        f"{line.strip()}\t{entity_type}\t{result['db']}\t{result['id']}\t{result['score']}\t{result['name']}\t{result['url']}\n"
+                    )
+                else:
+                    f2.write(
+                        f"{line.strip()}\t{entity_type}\tNOT_FOUND\tNOT_FOUND\t{np.nan}\tNOT_FOUND\tNOT_FOUND\n"
+                    )
 
 
 if __name__ == "__main__":
