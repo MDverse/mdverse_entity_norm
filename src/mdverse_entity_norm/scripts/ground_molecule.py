@@ -29,7 +29,7 @@ def get_type(entry: str):
     str: The entity type ("PDB", "UNIPROT", "DNA", "RNA", or "CHEBI")
     """
     # PDB codes are 4 characters starting with a number
-    if len(entry) == 4 and entry[0].isnumeric() and entry.isalnum():
+    if re.search(r"^[1-9]([a-z]|[1-9]){3}$", entry) is not None:
         return "PDB"
     # UniProt accession pattern matching
     if (
@@ -41,17 +41,20 @@ def get_type(entry: str):
     ):
         return "UNIPROT"
     # DNA sequence pattern (only a, t, c, g)
-    if re.search(r"^[atcg]+$", entry) is not None:
+    if re.search(r"^5'-[ATGC]+-3'$", entry) is not None:
         return "DNA"
     # RNA sequence pattern
-    if re.search(r"^[atucg]+$", entry) is not None:
+    if re.search(r"^5'-[AUCG]+-3'$", entry) is not None:
         return "RNA"
-    # Default to ChEBI for other chemical entities
+    # Amino acid sequence pattern
+    if re.search(r"^(?!^[AGCT]+$)[ACDEFGHIKLMNPQRSTVWY]+$", entry) is not None:
+        return "PROTEIN"
+    # Default to ChEBI/GILDA for other chemical entities
     else:
-        return "CHEBI"
+        return "CHEBI/GILDA"
 
 
-def call_PDB(code_pdb: str):  # noqa: N802
+def call_pdb(code_pdb: str):
     """Query the Protein Data Bank API for a given PDB code.
 
     Parameters
@@ -149,7 +152,7 @@ def call_gilda(entity_name: str):
     -------
     dict : Details retrieved from the chebi dtabase (id, score, name)
     """
-    results = gilda.ground(entity_name)
+    results = gilda.ground(entity_name, namespaces=["CHEBI"])
     if results is not None and len(results) > 0:
         grounding_res = results[0].to_json()
         logger.info(
@@ -178,19 +181,19 @@ def grouding_mol_chebi(mol_file: str, ground_mol_file: str):
     """
     # Open and read the MOL.txt file line by line
     with open(mol_file) as file_1, open(ground_mol_file, "w") as f2:
-        f2.write("Entry\tType\tID_CHEBI\rName\tScore\tStars\n")
+        f2.write("Entity_name\tType\tDatabase\tID\tScore\tName\tStars\n")
         for line in file_1:
             entity_type = get_type(line.strip())
-            if entity_type == "CHEBI":
+            if entity_type == "CHEBI/GILDA":
                 result = call_chebi(line.strip())
                 if result is not None:
                     f2.write(
-                        f"{line.strip()}\t{entity_type}\t{result['chebi_id']}\t{result['name']}\t{result['score']}\t{result['star']}\n"
+                        f"{line.strip()}\t{entity_type}\tCHEBI\t{result['chebi_id']}\t{result['name']}\t{result['score']}\t{result['star']}\n"
                     )
                 else:
                     f2.write(
-                        f"{line.strip()}\t{entity_type}\tNot Found\tNot Found"
-                        f"\tNA\tNot Found\n"
+                        f"{line.strip()}\t{entity_type}\tCHEBI\tNot Found\tNA"
+                        f"\tNot Found\tNot Found\n"
                     )
 
 
@@ -206,7 +209,7 @@ def grouding_mol_pdb(mol_file: str, ground_mol_file: str):
         for line in file_1:
             entity_type = get_type(line.strip())
             if entity_type == "PDB":
-                result = call_PDB(line.strip())
+                result = call_pdb(line.strip())
                 if result is not None:
                     f2.write(
                         f"{line.strip()}\t{entity_type}\t{result['rcsb_id']}\t{result['title']}\t{result['pubmed_id']}\t{result['doi']}\n"
@@ -249,36 +252,38 @@ def grounding_gilda(mol_file: str, ground_mol_file: str):
 
     """
     with open(mol_file) as file_1, open(ground_mol_file, "w") as f2:
-        f2.write("Entity_name\tDatabase\tGilda_ID\tScore\tGilda_Name\tURL\n")
+        f2.write("Entity_name\tType\tDatabase\tID\tScore\tName\tURL\n")
 
         for line in file_1:
-            result = call_gilda(line.strip())
+            entity_type = get_type(line.strip())
+            if entity_type == "CHEBI/GILDA":
+                result = call_gilda(line.strip())
 
             if result:
                 f2.write(
-                    f"{line.strip()}\t{result['db']}\t{result['id']}\t{result['score']}\t{result['name']}\t{result['url']}\n"
+                    f"{line.strip()}\t{entity_type}\t{result['db']}\t{result['id']}\t{result['score']}\t{result['name']}\t{result['url']}\n"
                 )
             else:
                 f2.write(
-                    f"{line.strip()}\tNOT_FOUND\tNOT_FOUND\tNA\tNOT_FOUND\tNOT_FOUND\n"
+                    f"{line.strip()}\t{entity_type}\tNOT_FOUND\tNA\tNOT_FOUND\tNOT_FOUND\tNOT_FOUND\n"
                 )
 
 
 if __name__ == "__main__":
-    # Grounding the molecule to PDB database
-    logger.info("Starting molecule grounding from PDB...")
-    grouding_mol_pdb("data/MOL.txt", "results/ground_mol_pdb.tsv")
-    logger.success("Molecule grounding completed.")
-    # Grounding the molecule to uniprot database
-    logger.info("Starting molecule grounding from UniProt...")
-    grouding_mol_uniprot("data/MOL.txt", "results/ground_mol_uniprot.tsv")
-    logger.success("Molecule grounding completed.")
+    # # Grounding the molecule to PDB database
+    # logger.info("Starting molecule grounding from PDB...")
+    # grouding_mol_pdb("data/MOL.txt", "results/ground_mol_pdb.tsv")
+    # logger.success("Molecule grounding completed.")
+    # # Grounding the molecule to uniprot database
+    # logger.info("Starting molecule grounding from UniProt...")
+    # grouding_mol_uniprot("data/MOL.txt", "results/ground_mol_uniprot.tsv")
+    # logger.success("Molecule grounding completed.")
 
-    # # Grounding the molecule to chebi database
+    # Grounding the molecule to chebi database
     logger.info("Starting molecule grounding from Chebi...")
     grouding_mol_chebi("data/MOL.txt", "results/ground_mol_chebi.tsv")
     logger.success("Molecule grounding completed.")
-    # # Grounding the molecule with gilda
+    # Grounding the molecule with gilda
     logger.info("Starting Gilda grounding...")
     grounding_gilda("data/MOL.txt", "results/ground_mol_gilda.tsv")
     logger.success("Gilda grounding completed.")
