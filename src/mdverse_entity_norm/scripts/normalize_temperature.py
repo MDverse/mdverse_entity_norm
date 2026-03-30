@@ -70,10 +70,10 @@ def create_norm_temp_file(raw_temp_file: str, norm_temp_file: str):
     norm_temp_file (str) : name of the input file with the normalised informations
 
     """
-    with open(raw_temp_file) as f1, open(norm_temp_file, "w") as f2:
+    with open(raw_temp_file) as file_1, open(norm_temp_file, "w") as f2:
         f2.write("raw temperature\tnormalised temperature\tnormalised unit\n")
 
-        for line in f1:
+        for line in file_1:
             raw_temp = line.strip()
             temperature_value, temperature_unit = norm_temp(raw_temp)
 
