@@ -29,13 +29,12 @@ def get_type(entry: str):
     str: The entity type ("PDB", "UNIPROT", "DNA", "RNA", or "CHEBI")
     """
     # PDB codes are 4 characters starting with a number
-    if len(entry) == 4 and entry[0].isnumeric():
+    if len(entry) == 4 and entry[0].isnumeric() and entry.isalnum():
         return "PDB"
     # UniProt accession pattern matching
     if (
         re.search(
-            r"[OPQ][0-9][A-Z0-9]{3}[0-9]|"
-            r"[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}",
+            r"[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}",
             entry,
         )
         is not None
@@ -90,11 +89,20 @@ def call_uniprot(code_uniprot: str):
     ----------
     code_uniprot (str): UniProt accession identifier
 
+    Returns
+    -------
+    dict: Details retrieved from the UniProt database (accession, uniprot_id, gene_name)
     """
     response = httpx.get(f"{API_UNIPROT}{code_uniprot}.json", timeout=10)
     # If request is successful (HTTP 200), print the response links
     if response.status_code == 200:
         logger.info(f"UniProt {code_uniprot}: {response.url}")
+        results = response.json()
+        return {
+            "accession": results.get("primaryAccession"),
+            "uniprot_id": results.get("uniProtkbId"),
+            "gene_name": results.get("genes", [{}])[0].get("geneName", {}).get("value"),
+        }
 
 
 def call_chebi(entity_name: str):
@@ -109,7 +117,7 @@ def call_chebi(entity_name: str):
     dict : Details retrieved from the chebi dtabase (id, score, name, stars)
     """
     parameters = {"term": entity_name, "page": 1, "size": 5}
-    response = httpx.get(f"{API_CHEBI}", params=parameters, timeout=10)
+    response = httpx.get(f"{API_CHEBI}", params=parameters, timeout=30)
     # If request is successful HTTP = 200
     if response.status_code == 200:
         logger.debug(
@@ -169,9 +177,9 @@ def grouding_mol_chebi(mol_file: str, ground_mol_file: str):
     mol_file (str): Path to the input file containing molecular identifiers
     """
     # Open and read the MOL.txt file line by line
-    with open(mol_file) as f1, open(ground_mol_file, "w") as f2:
+    with open(mol_file) as file_1, open(ground_mol_file, "w") as f2:
         f2.write("Entry\tType\tID_CHEBI\rName\tScore\tStars\n")
-        for line in f1:
+        for line in file_1:
             entity_type = get_type(line.strip())
             if entity_type == "CHEBI":
                 result = call_chebi(line.strip())
@@ -193,9 +201,9 @@ def grouding_mol_pdb(mol_file: str, ground_mol_file: str):
     ----------
     mol_file (str): Path to the input file containing molecular identifiers
     """
-    with open(mol_file) as f1, open(ground_mol_file, "w") as f2:
+    with open(mol_file) as file_1, open(ground_mol_file, "w") as f2:
         f2.write("Entity_name\tType\tID_PDB\tTittle\tpubmed_id\tdoi\n")
-        for line in f1:
+        for line in file_1:
             entity_type = get_type(line.strip())
             if entity_type == "PDB":
                 result = call_PDB(line.strip())
@@ -217,15 +225,18 @@ def grouding_mol_uniprot(mol_file: str, ground_mol_file: str):
     ----------
     mol_file (str): Path to the input file containing molecular identifiers
     """
-    with open(mol_file) as f1, open(ground_mol_file, "w") as f2:
-        f2.write("Entity_name\tType\tID_UNIPROT\n")
-        for line in f1:
+    with open(mol_file) as file_1, open(ground_mol_file, "w") as f2:
+        f2.write("Entity_name\tType\tAccession\tID_UNIPROT\tgene_name\n")
+        for line in file_1:
             entity_type = get_type(line.strip())
             if entity_type == "UNIPROT":
-                call_uniprot(line.strip())
-                f2.write(f"{line.strip()}\t{entity_type}\t{line.strip()}\n")
-            else:
-                f2.write(f"{line.strip()}\t{entity_type}\tNot Found\n")
+                result = call_uniprot(line.strip())
+                if result is not None:
+                    f2.write(
+                        f"{line.strip()}\t{entity_type}\t{result['accession']}\t{result['uniprot_id']}\t{result['gene_name']}\n"
+                    )
+                else:
+                    f2.write(f"{line.strip()}\t{entity_type}\tNot Found\n")
 
 
 def grounding_gilda(mol_file: str, ground_mol_file: str):
@@ -237,10 +248,10 @@ def grounding_gilda(mol_file: str, ground_mol_file: str):
     ROUND_mol_file (str) : name of the output file
 
     """
-    with open(mol_file) as f1, open(ground_mol_file, "w") as f2:
+    with open(mol_file) as file_1, open(ground_mol_file, "w") as f2:
         f2.write("Entity_name\tDatabase\tGilda_ID\tScore\tGilda_Name\tURL\n")
 
-        for line in f1:
+        for line in file_1:
             result = call_gilda(line.strip())
 
             if result:
@@ -259,12 +270,15 @@ if __name__ == "__main__":
     grouding_mol_pdb("data/MOL.txt", "results/ground_mol_pdb.tsv")
     logger.success("Molecule grounding completed.")
     # Grounding the molecule to uniprot database
+    logger.info("Starting molecule grounding from UniProt...")
+    grouding_mol_uniprot("data/MOL.txt", "results/ground_mol_uniprot.tsv")
+    logger.success("Molecule grounding completed.")
 
     # # Grounding the molecule to chebi database
-    # logger.info("Starting molecule grounding from Chebi...")
-    # grouding_mol_chebi("data/MOL.txt", "results/ground_mol_chebi.tsv")
-    # logger.success("Molecule grounding completed.")
+    logger.info("Starting molecule grounding from Chebi...")
+    grouding_mol_chebi("data/MOL.txt", "results/ground_mol_chebi.tsv")
+    logger.success("Molecule grounding completed.")
     # # Grounding the molecule with gilda
-    # logger.info("Starting Gilda grounding...")
-    # grounding_gilda("data/MOL.txt", "results/ground_mol_gilda.tsv")
-    # logger.success("Gilda grounding completed.")
+    logger.info("Starting Gilda grounding...")
+    grounding_gilda("data/MOL.txt", "results/ground_mol_gilda.tsv")
+    logger.success("Gilda grounding completed.")
