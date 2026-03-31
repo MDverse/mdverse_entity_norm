@@ -44,14 +44,15 @@ def get_type(entry: str):
     ):
         return "UNIPROT"
     # DNA sequence pattern (only a, t, c, g)
-    if re.search(r"^5'-[ATGC]+-3'$", entry) is not None:
+    if re.search(r"^5’-[atcg]+-3’$", entry) is not None:
         return "DNA"
     # RNA sequence pattern
-    if re.search(r"^5'-[AUCG]+-3'$", entry) is not None:
+    if re.search(r"^5’-[aucg]+-3’$", entry) is not None:
         return "RNA"
-    # Amino acid sequence pattern
-    if re.search(r"^(?!^[AGCT]+$)[ACDEFGHIKLMNPQRSTVWY]+$", entry) is not None:
-        return "PROTEIN"
+    # # Amino acid sequence pattern
+    # [WIP : need another logic to avoid grounding Chebi entities as proteins]
+    # if re.search(r"^(?!^[agct]+$)[acdefghiklmnpqrstvwy]+$", entry) is not None:
+    #     return "PROTEIN"
     # Default to ChEBI/GILDA for other chemical entities
     else:
         return "CHEBI/GILDA"
