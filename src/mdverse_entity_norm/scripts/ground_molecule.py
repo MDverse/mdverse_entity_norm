@@ -31,6 +31,9 @@ def get_type(entry: str):
     -------
     str: The entity type ("PDB", "UNIPROT", "DNA", "RNA", or "CHEBI")
     """
+    entry = entry.replace(
+        "`", "'"
+    )  # Replace backticks with single quotes for sequence patterns
     # PDB codes are 4 characters starting with a number
     if re.search(r"^[1-9]([a-z]|[1-9]){3}$", entry) is not None:
         return "PDB"
@@ -44,10 +47,10 @@ def get_type(entry: str):
     ):
         return "UNIPROT"
     # DNA sequence pattern (only a, t, c, g)
-    if re.search(r"^5’-[atcg]+-3’$", entry) is not None:
+    if re.search(r"^5'-[atcg]+-3'$", entry) is not None:
         return "DNA"
     # RNA sequence pattern
-    if re.search(r"^5’-[aucg]+-3’$", entry) is not None:
+    if re.search(r"^5'-[aucg]+-3'$", entry) is not None:
         return "RNA"
     # # Amino acid sequence pattern
     # [WIP : need another logic to avoid grounding Chebi entities as proteins]
