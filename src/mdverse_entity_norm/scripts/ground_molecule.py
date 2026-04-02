@@ -6,11 +6,13 @@ gilda : This module allows Grounding Integrating Learned Disambiguation.
 """
 
 import json
+import os
 import re
+import sys
+from datetime import UTC, datetime
 
 import gilda
 import httpx
-import numpy as np
 import pandas as pd
 from loguru import logger
 
@@ -18,6 +20,27 @@ from loguru import logger
 API_PDB = "https://data.rcsb.org/rest/v1/core/entry/"
 API_UNIPROT = "https://rest.uniprot.org/uniprotkb/"
 API_CHEBI = "https://www.ebi.ac.uk/chebi/backend/api/public/es_search/"
+API_PUBCHEM = "https://pubchem.ncbi.nlm.nih.gov/rest/pug"
+
+
+def load_molecule(filename: str):
+    """Load molecular identifiers from a file into a list.
+
+    Parameters
+    ----------
+    filename (str): Path to the input file containing molecular identifiers
+
+    Returns
+    -------
+    list: A list of molecular identifiers loaded from the file
+    """
+    results = []
+
+    with open(filename) as raw_molecule_file:
+        logger.info("Transforming the file into a list")
+        for line in raw_molecule_file:
+            results.append(line.strip())
+    return results
 
 
 def get_type(entry: str):
@@ -54,8 +77,8 @@ def get_type(entry: str):
         return "RNA"
     # # Amino acid sequence pattern
     # [WIP : need another logic to avoid grounding Chebi entities as proteins]
-    # if re.search(r"^(?!^[agct]+$)[acdefghiklmnpqrstvwy]+$", entry) is not None:
-    #     return "PROTEIN"
+    if re.search(r"^(?!^[agct]+$)[acdefghiklmnpqrstvwy]+$", entry) is not None:
+        return "PROTEIN"
     # Default to ChEBI/GILDA for other chemical entities
     else:
         return "CHEBI/GILDA"
@@ -86,22 +109,29 @@ def call_pdb(code_pdb: str):
     response = httpx.get(f"{API_PDB}{code_pdb}", timeout=10)
     # If request is successful (HTTP 200), print the response links
     if response.status_code == 200:
-        logger.info(f"PDB {code_pdb}: {response.url}")
+        logger.info(
+            f"From PDB {code_pdb}: for {code_pdb} -> Status HTTP : {response.status_code}"
+            f"(The request succeeded`)"
+        )
         results = response.json()
+
         result_dict = {
             "pubmed_id": results.get("rcsb_primary_citation", {}).get(
-                "pdbx_database_id_pub_med"
+                "pdbx_database_id_pub_med", "Not Available"
             ),
-            "doi": results.get("rcsb_primary_citation", {}).get("pdbx_database_id_doi"),
-            "title": results.get("struct", {}).get("title"),
-            "rcsb_id": results.get("rcsb_id"),
+            "doi": results.get("rcsb_primary_citation", {}).get(
+                "pdbx_database_id_doi", "Not Available"
+            ),
+            "title": results.get("struct", {}).get("title", "Not Available"),
+            "rcsb_id": results.get("rcsb_id", "Not Available"),
         }
-        return result_dict
     else:
+        result_dict = {code_pdb: response.status_code}
         logger.warning(
-            f"Status HTTP : {response.status_code} "
-            f"(The server can't process your request for `{code_pdb}`)"
+            f"From PDB: for {code_pdb} -> Status HTTP : {response.status_code}"
+            f"(The server can't process your request`)"
         )
+    return result_dict
 
 
 def call_uniprot(code_uniprot: str):
@@ -122,19 +152,24 @@ def call_uniprot(code_uniprot: str):
     response = httpx.get(f"{API_UNIPROT}{code_uniprot}.json", timeout=10)
     # If request is successful (HTTP 200), print the response links
     if response.status_code == 200:
-        logger.info(f"UniProt {code_uniprot}: {response.url}")
+        logger.info(
+            f"from UniProt: for {code_uniprot} : -> Status HTTP : {response.status_code}"
+            f"(The request succeeded`)"
+        )
         results = response.json()
+
         result_dict = {
             "accession": results.get("primaryAccession"),
             "uniprot_id": results.get("uniProtkbId"),
             "gene_name": results.get("genes", [{}])[0].get("geneName", {}).get("value"),
         }
-        return result_dict
     else:
         logger.warning(
-            f"Status HTTP : {response.status_code} "
-            f"(The server can't process your request for `{code_uniprot}`)"
+            f"from UniProt: for {code_uniprot} : -> Status HTTP : {response.status_code}"
+            f"(The server can't process your request)"
         )
+        result_dict = {code_uniprot: response.status_code}
+    return result_dict
 
 
 def call_chebi(entity_name: str):
@@ -159,23 +194,25 @@ def call_chebi(entity_name: str):
     # If request is successful HTTP = 200
     if response.status_code == 200:
         logger.debug(
-            f"Status HTTP : {response.status_code} "
-            f"(The request succeeded for `{entity_name}`)"
+            f"from ChEBI: for {entity_name} : -> Status HTTP : {response.status_code} "
+            f"(The request succeeded)"
         )
         results = response.json()["results"][0]
+
         result_dict = {
-            "id": results["_id"],
-            "score": results["_score"],
-            "name": results["_source"]["ascii_name"],
-            "star": results["_source"]["stars"],
+            "id": results.get("_id", "Not Available"),
+            "score": results.get("_score", "Not Available"),
+            "name": results.get("_source", {}).get("ascii_name", "Not Available"),
+            "star": results.get("_source", {}).get("stars", "Not Available"),
             "nb_res": json.loads(string_response)["total"],
         }
-        return result_dict
     else:
         logger.warning(
-            f"Status HTTP : {response.status_code} "
-            f"(The server can't process your request for `{entity_name}`)"
+            f"from ChEBI: for {entity_name} : -> Status HTTP : {response.status_code}"
+            f"(The server can't process your request)"
         )
+        result_dict = {entity_name: response.status_code}
+    return result_dict
 
 
 def call_gilda(entity_name: str):
@@ -201,21 +238,62 @@ def call_gilda(entity_name: str):
     if results is not None and len(results) > 0:
         grounding_res = results[0].to_json()
         logger.info(
-            f"Gilda grounding results found for `{entity_name}` : "
-            f"{grounding_res['term']['id']}"
+            f"Using Gilda : for `{entity_name}` : From {grounding_res['term']['db']}"
+            f"Grounding in progress..."
         )
-        (logger.info(f"Database : {grounding_res['term']['db']}"),)
+
         result_dict = {
-            "db": grounding_res["term"]["db"],
-            "id": grounding_res["term"]["id"].strip("CHEBI:"),
-            "score": grounding_res["score"],
-            "name": grounding_res["term"]["text"],
-            "url": grounding_res["url"],
+            "db": grounding_res.get("term", {}).get("db", "Not Available"),
+            "id": grounding_res.get("term", {})
+            .get("id", "Not Available")
+            .strip("CHEBI:"),
+            "score": grounding_res.get("score", "Not Available"),
+            "name": grounding_res.get("term", {}).get("text", "Not Available"),
+            "url": grounding_res.get("url", "Not Available"),
             "nb_res": len(results),
         }
-        return result_dict
     else:
-        logger.warning(f"No grounding results found for `{entity_name}` using GILDA.")
+        logger.warning(
+            f"Using Gilda : for `{entity_name}` : No grounding results found."
+        )
+        result_dict = {entity_name: "Not found by Gilda"}
+    return result_dict
+
+
+def call_pubchem(entity_name: str):
+    """Query the PubChem API for a given molecule name.
+
+    Parameters
+    ----------
+    entity_name (str): name of the compound
+
+    Returns
+    -------
+    dict : Details retrieved from PubChem (cid, full_name)
+    """
+    response = httpx.get(
+        f"{API_PUBCHEM}/compound/name/{entity_name}/property/IUPACName,MolecularFormula/JSON",
+        timeout=10,
+    )
+    if response.status_code == 200:
+        logger.debug(
+            f"from PubChem: for {entity_name} : -> Status HTTP : {response.status_code} "
+            f"(The request succeeded)"
+        )
+        results = response.json()["PropertyTable"]["Properties"][0]
+        if results:
+            result_dict = {
+                "cid": results.get("CID", "Not Available"),
+                "full_name": results.get("IUPACName", "Not Available"),
+                "molecular_formula": results.get("MolecularFormula", "Not Available"),
+            }
+    else:
+        logger.warning(
+            f"from PubChem: for {entity_name} : -> Status HTTP : {response.status_code}"
+            f"(The server can't process your request)"
+        )
+        result_dict = {entity_name: response.status_code}
+    return result_dict
 
 
 # ------------------------------------------------------------------------------#
@@ -237,14 +315,24 @@ def grouding_mol_chebi(mol_file: str, ground_mol_file: str):
             entity_type = get_type(line.strip())
             if entity_type == "CHEBI/GILDA":
                 result = call_chebi(line.strip())
-                if result is not None:
+                if result:
                     f2.write(
                         f"{line.strip()}\t{entity_type}\tCHEBI\t{result['id']}\t{result['score']}\t{result['name']}\t{result['star']}\t{result['nb_res']}\n"
                     )
                 else:
-                    f2.write(
-                        f"{line.strip()}\t{entity_type}\tCHEBI\tNOT_FOUND\t{np.nan}\tNOT_FOUND\tNOT_FOUND\tNOT_FOUND\n"
-                    )
+                    entity_type = "PubChem"
+                    result = call_pubchem(line.strip())
+                    if result is not None:
+                        f2.write(
+                            f"{line.strip()}\t{entity_type}\tPubChem\t{result['cid']}\t"
+                            f"Not Available\t{result['full_name']}\t"
+                            f"Not Available\tNot Available\n"
+                        )
+                    else:
+                        f2.write(
+                            f"{line.strip()}\t{entity_type}\tPubChem\tNOT_FOUND\t"
+                            f"Not Available\tNOT_AVAILABLE\tNot Available\tNot Available\n"
+                        )
 
 
 def grouding_mol_pdb(mol_file: str, ground_mol_file: str):
@@ -313,9 +401,19 @@ def grounding_gilda(mol_file: str, ground_mol_file: str):
                         f"{line.strip()}\t{entity_type}\t{result['db']}\t{result['id']}\t{result['score']}\t{result['name']}\t{result['url']}\t{result['nb_res']}\n"
                     )
                 else:
-                    f2.write(
-                        f"{line.strip()}\t{entity_type}\tNOT_FOUND\tNOT_FOUND\t{np.nan}\tNOT_FOUND\tNOT_FOUND\tNOT_FOUND\n"
-                    )
+                    entity_type = "PubChem"
+                    result = call_pubchem(line.strip())
+                    if result is not None:
+                        f2.write(
+                            f"{line.strip()}\t{entity_type}\tPubChem\t{result['cid']}\t"
+                            f"Not Available\t{result['full_name']}\t"
+                            f"Not Available\tNot Available\n"
+                        )
+                    else:
+                        f2.write(
+                            f"{line.strip()}\t{entity_type}\tPubChem\tNOT_FOUND\t"
+                            f"Not Available\tNOT_AVAILABLE\tNot Available\tNot Available\n"
+                        )
 
 
 def grounding_sequence(mol_file: str, ground_mol_file: str):
@@ -363,34 +461,70 @@ def compare_grounding(chebi_file: str, gilda_file: str, intersection_file: str):
     df_merged.to_csv(intersection_file, sep="\t", index=False)
 
 
+def diff_grounding(chebi_filename: str, gilda_filename: str, diff_file: str):
+    """Generate a file containing the differences between ChEBI and GILDA grounding results.
+
+    Parameters
+    ----------
+    chebi_filename (str): Path to the ChEBI grounding results TSV file
+    gilda_filename (str): Path to the GILDA grounding results TSV file
+    diff_file (str): Path to the output difference TSV file
+
+    Returns
+    -------
+    dataFrame: Result dataframe containing the
+    """
+    df_chebi = pd.read_csv(chebi_filename, sep="\t")
+    df_gilda = pd.read_csv(gilda_filename, sep="\t")
+
+    df_merged = df_chebi.merge(df_gilda, how="outer")
+    df_merged = df_merged.drop("Type", axis=1)
+    df_merged = df_merged.drop("URL", axis=1)
+    df_merged = df_merged.drop("Stars", axis=1)
+    df_merged = df_merged.iloc[:, [0, 6, 1, 2, 4, 3, 5]]
+
+    return df_merged
+
+
 if __name__ == "__main__":
     # Grounding the molecule to PDB database
-    logger.info("Starting molecule grounding from PDB...")
-    grouding_mol_pdb("data/MOL.txt", "results/ground_mol_pdb.tsv")
-    logger.success("Molecule grounding completed.")
-    # Grounding the molecule to uniprot database
-    logger.info("Starting molecule grounding from UniProt...")
-    grouding_mol_uniprot("data/MOL.txt", "results/ground_mol_uniprot.tsv")
-    logger.success("Molecule grounding completed.")
-    # Grounding the molecule to sequence databases
-    logger.info("Starting molecule grounding for sequences...")
-    grounding_sequence("data/MOL.txt", "results/ground_mol_sequence.tsv")
-    logger.success("Molecule grounding completed.")
+    timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
+    logger.add(
+        sys.stderr,
+        level="DEBUG",
+    )
+    os.makedirs("logs", exist_ok=True)
+    logger.add(
+        f"logs/ground_molecule_{timestamp}.log",
+        level="DEBUG",
+    )
+    # logger.info("Starting molecule grounding from PDB...")
+    # grouding_mol_pdb("data/MOL.txt", "results/ground_mol_pdb.tsv")
+    # logger.success("Molecule grounding completed.")
+    # # Grounding the molecule to uniprot database
+    # logger.info("Starting molecule grounding from UniProt...")
+    # grouding_mol_uniprot("data/MOL.txt", "results/ground_mol_uniprot.tsv")
+    # logger.success("Molecule grounding completed.")
 
     # Grounding the molecule to chebi database
     logger.info("Starting molecule grounding from Chebi...")
     grouding_mol_chebi("data/MOL.txt", "results/ground_mol_chebi.tsv")
     logger.success("Molecule grounding completed.")
-    # Grounding the molecule with gilda
-    logger.info("Starting Gilda grounding...")
-    grounding_gilda("data/MOL.txt", "results/ground_mol_gilda.tsv")
-    logger.success("Gilda grounding completed.")
+    # # Grounding the molecule with gilda
+    # logger.info("Starting Gilda grounding...")
+    # grounding_gilda("data/MOL.txt", "results/ground_mol_gilda.tsv")
+    # logger.success("Gilda grounding completed.")
+
+    # # Grounding the molecule to sequence databases
+    # logger.info("Starting molecule grounding for sequences...")
+    # grounding_sequence("data/MOL.txt", "results/ground_mol_sequence.tsv")
+    # logger.success("Molecule grounding completed.")
 
     # Compare the grounding results from chebi and gilda
-    logger.info("Comparing grounding results from ChEBI and GILDA...")
-    compare_grounding(
-        "results/ground_mol_chebi.tsv",
-        "results/ground_mol_gilda.tsv",
-        "results/ground_mol_comparison.tsv",
-    )
-    logger.success("Grounding comparison completed.")
+    # logger.info("Comparing grounding results from ChEBI and GILDA...")
+    # compare_grounding(
+    #     "results/ground_mol_chebi.tsv",
+    #     "results/ground_mol_gilda.tsv",
+    #     "results/ground_mol_comparison.tsv",
+    # )
+    # logger.success("Grounding comparison completed.")
