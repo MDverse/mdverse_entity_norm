@@ -1,16 +1,13 @@
-"""Module for using regex, sending requests and grounding.
+"""Script to ground molecule entities using various databases and compare results."""
 
-re :This module provides regular expression matching operations.
-requests : This module allows you to send HTTP/ requests.
-gilda : This module allows Grounding Integrating Learned Disambiguation.
-"""
-
+import csv
 import json
 import os
 import re
-import sys
 from datetime import UTC, datetime
+from pathlib import Path
 
+import click
 import gilda
 import httpx
 import pandas as pd
@@ -23,23 +20,24 @@ API_CHEBI = "https://www.ebi.ac.uk/chebi/backend/api/public/es_search/"
 API_PUBCHEM = "https://pubchem.ncbi.nlm.nih.gov/rest/pug"
 
 
-def load_molecule(filename: str):
+def load_molecule(file_path: Path) -> list:
     """Load molecular identifiers from a file into a list.
 
     Parameters
     ----------
-    filename (str): Path to the input file containing molecular identifiers
+    file_path (Path): Path to the input file containing molecular identifiers
 
     Returns
     -------
     list: A list of molecular identifiers loaded from the file
     """
+    logger.info(f"Loading molecule identifiers from {file_path}...")
     mols = []
-
-    with open(filename) as raw_molecule_file:
+    with open(file_path) as raw_molecule_file:
         logger.info("Transforming the file into a list")
         for line in raw_molecule_file:
             mols.append(line.strip())
+    logger.success(f"Loaded {len(mols)} molecule identifiers successfully.")
     return mols
 
 
@@ -84,94 +82,6 @@ def get_type(entry: str):
         return "CHEBI/GILDA"
 
 
-# ------------------------------------------------------------------------------#
-# Functions to call the APIs and retrieve the grounding information              #
-# ------------------------------------------------------------------------------#
-
-
-def call_pdb(code_pdb: str):
-    """Query the Protein Data Bank API for a given PDB code.
-
-    Parameters
-    ----------
-    code_pdb (str): 4-character PDB identifier code
-
-    Returns
-    -------
-    dict: Details retrieved from the PDB database (entry_id, pubmed_id, doi, emdb_id)
-    """
-    # The result_dict contains :
-    # - entry_id : The PDB identifier code
-    # - pubmed_id : The PubMed ID of the primary citation associated with the PDB entry
-    # - doi : The DOI of the primary citation associated with the PDB entry
-    # - title : The title of the PDB entry
-    # - rcsb_id : The RCSB ID of the PDB entry
-    response = httpx.get(f"{API_PDB}{code_pdb}", timeout=10)
-    # If request is successful (HTTP 200), print the response links
-    if response.status_code == 200:
-        logger.info(
-            f"From PDB {code_pdb}: for {code_pdb} -> Status HTTP : {response.status_code}"
-            f"(The request succeeded`)"
-        )
-        results = response.json()
-
-        result_dict = {
-            "pubmed_id": results.get("rcsb_primary_citation", {}).get(
-                "pdbx_database_id_pub_med", "Not Available"
-            ),
-            "doi": results.get("rcsb_primary_citation", {}).get(
-                "pdbx_database_id_doi", "Not Available"
-            ),
-            "title": results.get("struct", {}).get("title", "Not Available"),
-            "rcsb_id": results.get("rcsb_id", "Not Available"),
-        }
-    else:
-        result_dict = {code_pdb: response.status_code}
-        logger.warning(
-            f"From PDB: for {code_pdb} -> Status HTTP : {response.status_code}"
-            f"(The server can't process your request`)"
-        )
-    return result_dict
-
-
-def call_uniprot(code_uniprot: str):
-    """Query the UniProt API for a given UniProt accession code.
-
-    Parameters
-    ----------
-    code_uniprot (str): UniProt accession identifier
-
-    Returns
-    -------
-    dict: Details retrieved from the UniProt database (accession, uniprot_id, gene_name)
-    """
-    # The result_dict contains :
-    # - accession : The primary accession number of the UniProt entry
-    # - uniprot_id : The UniProtKB identifier (entry name)
-    # - gene_name : The primary gene name associated with the UniProt entry
-    response = httpx.get(f"{API_UNIPROT}{code_uniprot}.json", timeout=10)
-    # If request is successful (HTTP 200), print the response links
-    if response.status_code == 200:
-        logger.info(
-            f"from UniProt: for {code_uniprot} : -> Status HTTP : {response.status_code}"
-            f"(The request succeeded`)"
-        )
-        results = response.json()
-
-        result_dict = {
-            "accession": results.get("primaryAccession"),
-            "uniprot_id": results.get("uniProtkbId"),
-            "gene_name": results.get("genes", [{}])[0].get("geneName", {}).get("value"),
-        }
-    else:
-        logger.warning(
-            f"from UniProt: for {code_uniprot} : -> Status HTTP : {response.status_code}"
-            f"(The server can't process your request)"
-        )
-        result_dict = {code_uniprot: response.status_code}
-    return result_dict
-
-
 def call_chebi(entity_name: str):
     """Query the ChEBI API for a given mollecule name.
 
@@ -183,12 +93,10 @@ def call_chebi(entity_name: str):
     -------
     dict : Details retrieved from the chebi dtabase (id, score, name, stars)
     """
-    # The result_dict contains :
-    # - id : The ChEBI identifier
-    # - score : The score search
-    # - name : The full name of the entity
-    # - nb_res : The number of results found by the GILDA Grounding
+    logger.info(f"Searching for `{entity_name}` in ChEBI database...")
+    # Define the parameters for the API request
     parameters = {"term": entity_name, "page": 1, "size": 5}
+    # Make the API request to ChEBI
     response = httpx.get(f"{API_CHEBI}", params=parameters, timeout=30)
     string_response = response.__dict__["_content"].decode()
     # If request is successful HTTP = 200
@@ -197,22 +105,79 @@ def call_chebi(entity_name: str):
             f"from ChEBI: for {entity_name} : -> Status HTTP : {response.status_code} "
             f"(The request succeeded)"
         )
+        # Retrieve the first result from the response and extract relevant details
         results = response.json()["results"][0]
-
-        result_dict = {
+        logger.success(f"ChEBI grounding successful for `{entity_name}`.")
+        return {
+            "entity_name": entity_name,
+            "database": "CHEBI",
             "id": results.get("_id", "Not Available"),
             "score": results.get("_score", "Not Available"),
             "name": results.get("_source", {}).get("ascii_name", "Not Available"),
             "star": results.get("_source", {}).get("stars", "Not Available"),
             "nb_res": json.loads(string_response)["total"],
         }
+    # If the request fails
     else:
         logger.warning(
-            f"from ChEBI: for {entity_name} : -> Status HTTP : {response.status_code}"
-            f"(The server can't process your request)"
+            f"Failed to ground `{entity_name}` in ChEBI database (HTTP {response.status_code})."
         )
-        result_dict = {entity_name: response.status_code}
-    return result_dict
+        return {"entity_name": entity_name, "error": f"HTTP {response.status_code}"}
+
+
+def grouding_mol_chebi(molecules: list[str]) -> tuple[list[dict], list[str]]:
+    """Ground molecules from Chebi."""
+    logger.info("Starting molecule grounding from Chebi...")
+    # The ressults_found contains :
+    # - id : The ChEBI identifier
+    # - score : The score search
+    # - name : The full name of the entity
+    # - nb_res : The number of results found by the GILDA Grounding
+    results_found = []
+    results_not_found = []
+
+    for molecule in molecules:
+        result = call_chebi(molecule)
+        if "error" not in result:
+            results_found.append(result)
+        else:
+            results_not_found.append(result)
+
+    logger.success("Molecule grounding completed.")
+    return results_found, results_not_found
+
+
+def save_results_into_tsv(grounding_results: list[dict], output_file: Path):
+    """Save grounding results into a TSV file.
+
+    Parameters
+    ----------
+    grounding_results (list[dict]): List of dictionaries containing grounding results
+    output_file (str): Path to the output TSV file to save the results
+    """
+    with open(output_file, "w", newline="") as grounded_molecule_file:
+        writer = csv.writer(grounded_molecule_file, delimiter="\t")
+        writer.writerow(
+            [
+                "Entity_name",
+                "Database",
+                "ID",
+                "Score",
+                "Name",
+                "nb_res",
+            ]
+        )
+        for result in grounding_results:
+            writer.writerow(
+                [
+                    result.get("entity_name", "Not Available"),
+                    result.get("database", "Not Available"),
+                    result.get("id", "Not Available"),
+                    result.get("score", "Not Available"),
+                    result.get("name", "Not Available"),
+                    result.get("nb_res", "Not Available"),
+                ]
+            )
 
 
 def call_gilda(entity_name: str):
@@ -226,7 +191,9 @@ def call_gilda(entity_name: str):
     -------
     dict : Details retrieved from the chebi database (id, score, name)
     """
-    # The result_dict contains :
+    ressults_found = []
+    results_not_found = []
+    # The ressults_found contains :
     # - db : The database from where the term has been grounded
     #        (here we force the database to be ChEBI)
     # - id : The ChEBI identifier
@@ -242,22 +209,117 @@ def call_gilda(entity_name: str):
             f"Grounding in progress..."
         )
 
-        result_dict = {
-            "db": grounding_res.get("term", {}).get("db", "Not Available"),
-            "id": grounding_res.get("term", {})
-            .get("id", "Not Available")
-            .strip("CHEBI:"),
-            "score": grounding_res.get("score", "Not Available"),
-            "name": grounding_res.get("term", {}).get("text", "Not Available"),
-            "url": grounding_res.get("url", "Not Available"),
-            "nb_res": len(results),
-        }
+        ressults_found.append(
+            {
+                "db": grounding_res.get("term", {}).get("db", "Not Available"),
+                "id": grounding_res.get("term", {})
+                .get("id", "Not Available")
+                .strip("CHEBI:"),
+                "score": grounding_res.get("score", "Not Available"),
+                "name": grounding_res.get("term", {}).get("text", "Not Available"),
+                "url": grounding_res.get("url", "Not Available"),
+                "nb_res": len(results),
+            }
+        )
     else:
         logger.warning(
             f"Using Gilda : for `{entity_name}` : No grounding results found."
         )
-        result_dict = {entity_name: "Not found by Gilda"}
-    return result_dict
+        results_not_found.append(entity_name)
+    return ressults_found, results_not_found
+
+
+def call_pdb(code_pdb: str):
+    """Query the Protein Data Bank API for a given PDB code.
+
+    Parameters
+    ----------
+    code_pdb (str): 4-character PDB identifier code
+
+    Returns
+    -------
+    dict: Details retrieved from the PDB database (entry_id, pubmed_id, doi, emdb_id)
+    """
+    ressults_found = []
+    results_not_found = []
+    # The ressults_found contains :
+    # - entry_id : The PDB identifier code
+    # - pubmed_id : The PubMed ID of the primary citation associated with the PDB entry
+    # - doi : The DOI of the primary citation associated with the PDB entry
+    # - title : The title of the PDB entry
+    # - rcsb_id : The RCSB ID of the PDB entry
+    response = httpx.get(f"{API_PDB}{code_pdb}", timeout=10)
+    # If request is successful (HTTP 200), print the response links
+    if response.status_code == 200:
+        logger.info(
+            f"From PDB {code_pdb}: for {code_pdb} -> Status HTTP : {response.status_code}"
+            f"(The request succeeded`)"
+        )
+        results = response.json()
+
+        ressults_found.append(
+            {
+                "pubmed_id": results.get("rcsb_primary_citation", {}).get(
+                    "pdbx_database_id_pub_med", "Not Available"
+                ),
+                "doi": results.get("rcsb_primary_citation", {}).get(
+                    "pdbx_database_id_doi", "Not Available"
+                ),
+                "title": results.get("struct", {}).get("title", "Not Available"),
+                "rcsb_id": results.get("rcsb_id", "Not Available"),
+            }
+        )
+    else:
+        results_not_found.append(code_pdb)
+        logger.warning(
+            f"From PDB: for {code_pdb} -> Status HTTP : {response.status_code}"
+            f"(The server can't process your request`)"
+        )
+    return ressults_found, results_not_found
+
+
+def call_uniprot(code_uniprot: str):
+    """Query the UniProt API for a given UniProt accession code.
+
+    Parameters
+    ----------
+    code_uniprot (str): UniProt accession identifier
+
+    Returns
+    -------
+    dict: Details retrieved from the UniProt database (accession, uniprot_id, gene_name)
+    """
+    ressults_found = []
+    results_not_found = []
+    # The ressults_found contains :
+    # - accession : The primary accession number of the UniProt entry
+    # - uniprot_id : The UniProtKB identifier (entry name)
+    # - gene_name : The primary gene name associated with the UniProt entry
+    response = httpx.get(f"{API_UNIPROT}{code_uniprot}.json", timeout=10)
+    # If request is successful (HTTP 200), print the response links
+    if response.status_code == 200:
+        logger.info(
+            f"from UniProt: for {code_uniprot} : -> Status HTTP : {response.status_code}"
+            f"(The request succeeded`)"
+        )
+        results = response.json()
+
+        ressults_found.append(
+            {
+                "accession": results.get("primaryAccession"),
+                "uniprot_id": results.get("uniProtkbId"),
+                "gene_name": results.get("genes", [{}])[0]
+                .get("geneName", {})
+                .get("value"),
+            }
+        )
+    else:
+        logger.warning(
+            f"from UniProt: for {code_uniprot} : -> Status HTTP : {response.status_code}"
+            f"(The server can't process your request)"
+        )
+        results_not_found.append(code_uniprot)
+    return ressults_found, results_not_found
 
 
 def call_pubchem(entity_name: str):
@@ -271,6 +333,12 @@ def call_pubchem(entity_name: str):
     -------
     dict : Details retrieved from PubChem (cid, full_name)
     """
+    ressults_found = []
+    results_not_found = []
+    # The ressults_found contains :
+    # - cid : The PubChem Compound ID (CID) of the entity
+    # - full_name : The IUPAC name of the entity
+    # - molecular_formula : The molecular formula of the entity
     response = httpx.get(
         f"{API_PUBCHEM}/compound/name/{entity_name}/property/IUPACName,MolecularFormula/JSON",
         timeout=10,
@@ -282,18 +350,22 @@ def call_pubchem(entity_name: str):
         )
         results = response.json()["PropertyTable"]["Properties"][0]
         if results:
-            result_dict = {
-                "cid": results.get("CID", "Not Available"),
-                "full_name": results.get("IUPACName", "Not Available"),
-                "molecular_formula": results.get("MolecularFormula", "Not Available"),
-            }
+            ressults_found.append(
+                {
+                    "cid": results.get("CID", "Not Available"),
+                    "full_name": results.get("IUPACName", "Not Available"),
+                    "molecular_formula": results.get(
+                        "MolecularFormula", "Not Available"
+                    ),
+                }
+            )
     else:
         logger.warning(
             f"from PubChem: for {entity_name} : -> Status HTTP : {response.status_code}"
             f"(The server can't process your request)"
         )
-        result_dict = {entity_name: response.status_code}
-    return result_dict
+        results_not_found.append(entity_name)
+    return ressults_found, results_not_found
 
 
 # ------------------------------------------------------------------------------#
@@ -301,38 +373,31 @@ def call_pubchem(entity_name: str):
 # ------------------------------------------------------------------------------#
 
 
-def grouding_mol_chebi(mol_file: str, ground_mol_file: str):
-    """Create an output file containing the informations returned by call_chebi.
+# def grouding_mol_chebi(ground_mol_file: list[str]):
+#     """Create an output file containing the informations returned by call_chebi.
 
-    Parameters
-    ----------
-    mol_file (str): Path to the input file containing molecular identifiers
-    """
-    # Open and read the MOL.txt file line by line
-    with open(mol_file) as file_1, open(ground_mol_file, "w") as f2:
-        f2.write("Entity_name\tType\tDatabase\tID\tScore\tName\tStars\tnb_res\n")
-        for line in file_1:
-            entity_type = get_type(line.strip())
-            if entity_type == "CHEBI/GILDA":
-                result = call_chebi(line.strip())
-                if result:
-                    f2.write(
-                        f"{line.strip()}\t{entity_type}\tCHEBI\t{result['id']}\t{result['score']}\t{result['name']}\t{result['star']}\t{result['nb_res']}\n"
-                    )
-                else:
-                    entity_type = "PubChem"
-                    result = call_pubchem(line.strip())
-                    if result is not None:
-                        f2.write(
-                            f"{line.strip()}\t{entity_type}\tPubChem\t{result['cid']}\t"
-                            f"Not Available\t{result['full_name']}\t"
-                            f"Not Available\tNot Available\n"
-                        )
-                    else:
-                        f2.write(
-                            f"{line.strip()}\t{entity_type}\tPubChem\tNOT_FOUND\t"
-                            f"Not Available\tNOT_AVAILABLE\tNot Available\tNot Available\n"
-                        )
+#     Parameters
+#     ----------
+#     mol_file (str): Path to the input file containing molecular identifiers
+#     """
+#     with open(ground_mol_file, "w", newline="") as grounded_molecule_file:
+#         writer = csv.writer(grounded_molecule_file, delimiter="\t")
+#         writer.writerow(header)
+
+#                 else:
+#                     entity_type = "PubChem"
+#                     result = call_pubchem(line.strip())
+#                     if result is not None:
+#                         grounded_molecule_file.write(
+#                             f"{line.strip()}\t{entity_type}\tPubChem\t{result['cid']}\t"
+#                             f"Not Available\t{result['full_name']}\t"
+#                             f"Not Available\tNot Available\n"
+#                         )
+#                     else:
+#                         grounded_molecule_file.write(
+#                             f"{line.strip()}\t{entity_type}\tPubChem\tNOT_FOUND\t"
+#                             f"Not Available\tNOT_AVAILABLE\tNot Available\tNot Available\n"
+#                         )
 
 
 def grouding_mol_pdb(mol_file: str, ground_mol_file: str):
@@ -486,18 +551,35 @@ def diff_grounding(chebi_filename: str, gilda_filename: str, diff_file: str):
     return df_merged
 
 
-if __name__ == "__main__":
-    # Grounding the molecule to PDB database
-    timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
-    logger.add(
-        sys.stderr,
-        level="DEBUG",
-    )
-    os.makedirs("logs", exist_ok=True)
-    logger.add(
-        f"logs/ground_molecule_{timestamp}.log",
-        level="DEBUG",
-    )
+@click.command()
+@click.option(
+    "--mol_filepath",
+    default="data/MOL.txt",
+    type=click.Path(exists=True, file_okay=True, path_type=Path),
+    help="Path to the input file containing molecular identifiers",
+)
+@click.option(
+    "--grounded_mol_filepath",
+    default="results/grounded_molecules.tsv",
+    type=click.Path(file_okay=True, path_type=Path),
+    help="Path to the output file for grounded results",
+)
+def ground_all_molecules(mol_filepath: Path, grounded_mol_filepath: Path):
+    """Ground all molecules in the input file and write results to output file."""
+    # Load molecule enntities from txt file
+    molecules = load_molecule(mol_filepath)
+    # Filter only the 5 first molecules for testing
+    molecules = molecules[:5]
+    # Grounding the molecule to chebi database
+    grounded_chebi_mols, _not_found_chebi_mols = grouding_mol_chebi(molecules)
+    # Save the ChEBI grounding results into a TSV file
+    save_results_into_tsv(grounded_chebi_mols, grounded_mol_filepath)
+
+    # # Grounding the molecule with gilda
+    # logger.info("Starting Gilda grounding...")
+    # grounding_gilda("data/MOL.txt", "results/ground_mol_gilda.tsv")
+    # logger.success("Gilda grounding completed.")
+
     # logger.info("Starting molecule grounding from PDB...")
     # grouding_mol_pdb("data/MOL.txt", "results/ground_mol_pdb.tsv")
     # logger.success("Molecule grounding completed.")
@@ -505,15 +587,6 @@ if __name__ == "__main__":
     # logger.info("Starting molecule grounding from UniProt...")
     # grouding_mol_uniprot("data/MOL.txt", "results/ground_mol_uniprot.tsv")
     # logger.success("Molecule grounding completed.")
-
-    # Grounding the molecule to chebi database
-    logger.info("Starting molecule grounding from Chebi...")
-    grouding_mol_chebi("data/MOL.txt", "results/ground_mol_chebi.tsv")
-    logger.success("Molecule grounding completed.")
-    # # Grounding the molecule with gilda
-    # logger.info("Starting Gilda grounding...")
-    # grounding_gilda("data/MOL.txt", "results/ground_mol_gilda.tsv")
-    # logger.success("Gilda grounding completed.")
 
     # # Grounding the molecule to sequence databases
     # logger.info("Starting molecule grounding for sequences...")
@@ -528,3 +601,14 @@ if __name__ == "__main__":
     #     "results/ground_mol_comparison.tsv",
     # )
     # logger.success("Grounding comparison completed.")
+
+
+if __name__ == "__main__":
+    # Grounding the molecule to PDB database
+    timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
+    os.makedirs("logs", exist_ok=True)
+    logger.add(
+        f"logs/ground_molecule_{timestamp}.log",
+        level="DEBUG",
+    )
+    ground_all_molecules()
