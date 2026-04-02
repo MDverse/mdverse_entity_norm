@@ -34,13 +34,13 @@ def load_molecule(filename: str):
     -------
     list: A list of molecular identifiers loaded from the file
     """
-    results = []
+    mols = []
 
     with open(filename) as raw_molecule_file:
         logger.info("Transforming the file into a list")
         for line in raw_molecule_file:
-            results.append(line.strip())
-    return results
+            mols.append(line.strip())
+    return mols
 
 
 def get_type(entry: str):
