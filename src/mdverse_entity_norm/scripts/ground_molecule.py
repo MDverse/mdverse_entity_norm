@@ -199,14 +199,15 @@ def call_pdb(code_pdb: str) -> dict:
         logger.success(f"ChEBI grounding successful for `{code_pdb}`.")
         return {
             "entity_name": code_pdb,
+            "database": "PDB",
             "pubmed_id": results.get("rcsb_primary_citation", {}).get(
                 "pdbx_database_id_pub_med", "Not Available"
             ),
             "doi": results.get("rcsb_primary_citation", {}).get(
                 "pdbx_database_id_doi", "Not Available"
             ),
-            "title": results.get("struct", {}).get("title", "Not Available"),
-            "rcsb_id": results.get("rcsb_id", "Not Available"),
+            "name": results.get("struct", {}).get("title", "Not Available"),
+            "id": results.get("rcsb_id", "Not Available"),
         }
     else:
         logger.warning(
@@ -242,8 +243,9 @@ def call_uniprot(code_uniprot: str) -> dict:
 
         return {
             "entity_name": code_uniprot,
+            "database": "UniProt",
             "accession": results.get("primaryAccession"),
-            "uniprot_id": results.get("uniProtkbId"),
+            "id": results.get("uniProtkbId"),
             "gene_name": results.get("genes", [{}])[0].get("geneName", {}).get("value"),
         }
 
@@ -282,8 +284,9 @@ def call_pubchem(entity_name: str) -> dict:
         logger.success(f"PubChem grounding successful for `{entity_name}`.")
         return {
             "entity_name": entity_name,
-            "cid": results.get("CID", "Not Available"),
-            "full_name": results.get("IUPACName", "Not Available"),
+            "database": "PubChem",
+            "id": results.get("CID", "Not Available"),
+            "name": results.get("IUPACName", "Not Available"),
             "molecular_formula": results.get("MolecularFormula", "Not Available"),
         }
     else:
@@ -308,7 +311,7 @@ def call_sequence(entity_name: str) -> dict:
     entity_type = get_type(entity_name)
     if entity_type == "PROTEIN":
         logger.success(f"Sequence `{entity_name}` classified as {entity_type}.")
-        return {"entity_name": entity_name, "type": entity_type}
+        return {"entity_name": entity_name, "database": entity_type}
     else:
         logger.warning(
             f"Failed to classify sequence `{entity_name}` -> Unrecognized format."
