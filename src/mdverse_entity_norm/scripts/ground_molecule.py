@@ -211,7 +211,7 @@ def call_pdb(code_pdb: str) -> dict:
         }
     else:
         logger.warning(
-            f"Failed to ground `{code_pdb}` in ChEBI database (HTTP {response.status_code})."
+            f"Failed to ground `{code_pdb}` in PDB database (HTTP {response.status_code})."
         )
         return {"entity_name": code_pdb, "error": f"HTTP {response.status_code}"}
 
@@ -251,7 +251,7 @@ def call_uniprot(code_uniprot: str) -> dict:
 
     else:
         logger.warning(
-            f"Failed to ground `{code_uniprot}` in PubChem database (HTTP {response.status_code})."
+            f"Failed to ground `{code_uniprot}` in UNIPROT database (HTTP {response.status_code})."
         )
         return {"entity_name": code_uniprot, "error": f"HTTP {response.status_code}"}
 
