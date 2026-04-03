@@ -33,11 +33,24 @@ uv run src/mdverse_entity_norm/scripts/normalize_temperature.py
 
 ### Ground molecules
 
+The logic behind the grounding of molecule entities is described in this image  below   :
+![Grounding logic](molecule_grounding_logic.png)
+
 To ground molecules entities, run :
 
 ```sh
 uv run src/mdverse_entity_norm/scripts/ground_molecule.py --mol_filepath data/MOL.txt --grounded_mol_filepath results/grounded_molecules.tsv --non_grounded_mol_filepath results/non_grounded_molecules.tsv
 ```
 > This command generates two files in the `results` directory: `grounded_molecules.tsv` and `non_grounded_molecules.tsv`. The `grounded_molecules.tsv` file contains the grounded molecule entities with their corresponding identifiers, while the `non_grounded_molecules.tsv` file contains the molecule entities that could not be grounded.
-The `grounded_molecules.tsv` file has six columns : `Entity_name` : corresponding to the original molecule name,`Database` : corresponding to the database name, `ID` : corresponding to the molecule ID, `Score` : corresponding to the confidence score, `Name` : corresponding to the molecule full name, `nb_res` : corresponding to the number of results found.
-The `non_grounded_molecules.tsv` file has two columns : `Entity_name` : corresponding to the original molecule name that could not be grounded and `error` : corresponding to the error code obtained during the grounding process.
+
+The `grounded_molecules.tsv` file has six columns :
+    `Entity_name` : corresponding to the original molecule name,
+    `Database` : corresponding to the database name,
+    `ID` : corresponding to the molecule ID,
+    `Score` : corresponding to the confidence score,
+    `Name` : corresponding to the molecule full name,
+    `nb_res` : corresponding to the number of results found.
+
+The`non_grounded_molecules.tsv` file has two columns :
+    `Entity_name` : corresponding to the original molecule name that could not be        grounded
+    `error` : corresponding to the error code obtained during the grounding process.
