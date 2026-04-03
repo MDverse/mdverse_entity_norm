@@ -123,7 +123,11 @@ def call_chebi(entity_name: str) -> dict:
         logger.warning(
             f"Failed to ground `{entity_name}` in ChEBI database (HTTP {response.status_code})."
         )
-        return {"entity_name": entity_name, "error": f"HTTP {response.status_code}"}
+        return {
+            "entity_name": entity_name,
+            "error": f"HTTP {response.status_code}",
+            "API": "CHEBI",
+        }
 
 
 def call_gilda(entity_name: str) -> dict:
@@ -167,7 +171,7 @@ def call_gilda(entity_name: str) -> dict:
         logger.warning(
             f"Failed to ground `{entity_name}` using Gilda -> No grounding results found."
         )
-    return {"entity_name": entity_name, "error": "No groundng found"}
+    return {"entity_name": entity_name, "error": "No groundng found", "API": "GILDA"}
 
 
 def call_pdb(code_pdb: str) -> dict:
@@ -213,7 +217,11 @@ def call_pdb(code_pdb: str) -> dict:
         logger.warning(
             f"Failed to ground `{code_pdb}` in PDB database (HTTP {response.status_code})."
         )
-        return {"entity_name": code_pdb, "error": f"HTTP {response.status_code}"}
+        return {
+            "entity_name": code_pdb,
+            "error": f"HTTP {response.status_code}",
+            "API": "PDB",
+        }
 
 
 def call_uniprot(code_uniprot: str) -> dict:
@@ -253,7 +261,11 @@ def call_uniprot(code_uniprot: str) -> dict:
         logger.warning(
             f"Failed to ground `{code_uniprot}` in UNIPROT database (HTTP {response.status_code})."
         )
-        return {"entity_name": code_uniprot, "error": f"HTTP {response.status_code}"}
+        return {
+            "entity_name": code_uniprot,
+            "error": f"HTTP {response.status_code}",
+            "API": "UNIPROT",
+        }
 
 
 def call_pubchem(entity_name: str) -> dict:
@@ -293,7 +305,11 @@ def call_pubchem(entity_name: str) -> dict:
         logger.warning(
             f"Failed to ground `{entity_name}` in Pubchem database (HTTP {response.status_code})."
         )
-        return {"entity_name": entity_name, "error": f"HTTP {response.status_code}"}
+        return {
+            "entity_name": entity_name,
+            "error": f"HTTP {response.status_code}",
+            "API": "PUBCHEM",
+        }
 
 
 def call_sequence(entity_name: str) -> dict:
@@ -316,7 +332,11 @@ def call_sequence(entity_name: str) -> dict:
         logger.warning(
             f"Failed to classify sequence `{entity_name}` -> Unrecognized format."
         )
-        return {"entity_name": entity_name, "error": "Unrecognized sequence"}
+        return {
+            "entity_name": entity_name,
+            "error": "Unrecognized sequence",
+            "API": "SEQUENCE",
+        }
 
 
 def grouding_mol(molecules: list[str]) -> tuple[list[dict], list[dict]]:
@@ -345,22 +365,26 @@ def grouding_mol(molecules: list[str]) -> tuple[list[dict], list[dict]]:
         if "error" not in result:
             results_found.append(result)
         else:
+            results_not_found.append(result)
             logger.info(f"Trying to ground `{molecule}` using UniProt...")
             result = call_uniprot(molecule)
             if "error" not in result:
                 results_found.append(result)
             else:
                 logger.info(f"Trying to ground `{molecule}` using ChEBI...")
+                results_not_found.append(result)
                 result = call_chebi(molecule)
                 if "error" not in result:
                     results_found.append(result)
                 else:
                     logger.info(f"Trying to ground `{molecule}` using Gilda...")
+                    results_not_found.append(result)
                     result = call_gilda(molecule)
                     if "error" not in result:
                         results_found.append(result)
                     else:
                         logger.info(f"Trying to ground `{molecule}` using PubChem...")
+                        results_not_found.append(result)
                         result = call_pubchem(molecule)
                         if "error" not in result:
                             results_found.append(result)
@@ -368,6 +392,7 @@ def grouding_mol(molecules: list[str]) -> tuple[list[dict], list[dict]]:
                             logger.info(
                                 f"Trying to classify `{molecule}` as a sequence..."
                             )
+                            results_not_found.append(result)
                             result = call_sequence(molecule)
                             if "error" in result:
                                 results_not_found.append(result)
@@ -429,6 +454,7 @@ def save_not_found_results_into_tsv(
             [
                 "Entity_name",
                 "error",
+                "API",
             ]
         )
         for result in grounding_results:
@@ -436,6 +462,7 @@ def save_not_found_results_into_tsv(
                 [
                     result.get("entity_name", "Not Available"),
                     result.get("error", "Not Available"),
+                    result.get("API", "Not Available"),
                 ]
             )
 
