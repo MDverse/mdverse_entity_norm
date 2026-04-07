@@ -28,7 +28,8 @@ Rules:
     with the same unit (e.g. value: 500, unit: "ns" and value: 1000, unit: "ns")
 - Take in consideration values written in letter (e.g. "one hundred"), and transfrom it
     to a numeric value
-- If the unit is k or if there is no value or non standard unit, ignore the line
+- If the unit is k or is missing define the normalized value of the unit to "None"
+- If the value is missing define the normalized value to "None"
  """
 
 
@@ -110,7 +111,7 @@ def save_normalised_simulation_time_into_tsv(
     with open(normalized_simulation_time, "w") as normalized_file:
         normalized_file.write(header[0])
         normalized_file.writelines(lines)
-    logger.info("The .csv file is complete")
+    logger.info("The .tsv file is complete")
 
 
 if __name__ == "__main__":
