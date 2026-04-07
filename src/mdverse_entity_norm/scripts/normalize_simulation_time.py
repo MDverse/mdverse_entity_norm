@@ -29,7 +29,7 @@ Rules:
 - Take in consideration values written in letter (e.g. "one hundred"), and transfrom it
     to a numeric value
 - If the unit is k or if there is no value or non standard unit, ignore the line
-- The file you will be working on is """
+ """
 
 
 def normalize_simulation_time(
@@ -58,9 +58,13 @@ def normalize_simulation_time(
         model="openai/gpt-4o",
         messages=[
             {
+                "role": "system",
+                "content": f"{PROMPT}",
+            },
+            {
                 "role": "user",
-                "content": f"{PROMPT}{content}",
-            }
+                "content": f"The file you will be working on is : {content}",
+            },
         ],
     )
     logger.info("Normalisation of simulation times complete")
