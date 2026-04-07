@@ -24,13 +24,13 @@ Rules:
     ms (milliseconds), s (seconds)
 - Preserve the original order of values found in the text
 - Always split value and unit (e.g. "500ns" → value: 500, unit: "ns")
-- If there is an interval (e.g. "500-1000ns"), split it into two entries
-    with the same unit (e.g. value: 500, unit: "ns" and value: 1000, unit: "ns")
+- If there is an interval (e.g. "500-1000ns"), follow the ground truth exemple
 - Take in consideration values written in letter (e.g. "one hundred"), and transfrom it
     to a numeric value
 - If the unit is k or is missing define the normalized value of the unit to "None"
 - If the value is missing define the normalized value to "None"
  """
+GROUND_TRUTH = "data/STIME_ground_truth.json"
 
 
 def normalize_simulation_time(
@@ -64,7 +64,8 @@ def normalize_simulation_time(
             },
             {
                 "role": "user",
-                "content": f"The file you will be working on is : {content}",
+                "content": f"The file you will be working on is : {content}, "
+                f"the normalized data must follow the output format in  {GROUND_TRUTH}",
             },
         ],
     )
