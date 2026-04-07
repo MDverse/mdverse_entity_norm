@@ -26,6 +26,8 @@ Rules:
 - Always split value and unit (e.g. "500ns" → value: 500, unit: "ns")
 - If there is an interval (e.g. "500-1000ns"), split it into two entries
     with the same unit (e.g. value: 500, unit: "ns" and value: 1000, unit: "ns")
+- Take in consideration values written in letter (e.g. "one hundred"), and transfrom it
+    to a numeric value
 - If the unit is k or if there is no value or non standard unit, ignore the line
 - The file you will be working on is """
 
