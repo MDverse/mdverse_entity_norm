@@ -2,6 +2,7 @@
 
 import json
 import os
+from datetime import UTC, datetime
 from pathlib import Path
 
 import click
@@ -107,4 +108,10 @@ def save_normalised_simulation_time_into_tsv(
 
 
 if __name__ == "__main__":
+    timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
+    os.makedirs("logs", exist_ok=True)
+    logger.add(
+        f"logs/normalize_simulation_time{timestamp}.log",
+        level="DEBUG",
+    )
     save_normalised_simulation_time_into_tsv()
