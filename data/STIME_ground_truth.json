@@ -1,0 +1,44 @@
+{
+    "GroundTruth" :
+        [
+            {
+                "input" : "10ns",
+                "output" : [{"value" : 10, "unit" : "ns"}]
+            },
+                        {
+                "input" : "one hundred nanosecond",
+                "output" : [{"value" : 100, "unit" : "ns"}]
+            },
+                        {
+                "input" : "multi-microsecond",
+                "output" : [{"value" : "None", "unit" : "μs"}]
+            },
+                        {
+                "input" : "6microseconds",
+                "output" : [{"value" : 6, "unit" : "μs"}]
+            },
+                        {
+                "input" : "100–200 ns",
+                "output" : [{"value" : 100, "unit" : "ns"},{"value" : 200, "unit" : "ns"}]
+            },
+                        {
+                "input" : "1.5 micro-sec",
+                "output" : [{"value" : 1.5, "unit" : "micro-sec"}]
+            },
+                        {
+                "input" : "5-microsecond",
+                "output" : [{"value" : 5, "unit" : "μs"}]
+            },
+                        {
+                "input" : "8 microseconds",
+                "output" : [{"value" : 8, "unit" : "μs"}]
+            },
+            {
+                "input" : "0.633 us",
+                "output" : [{"value" : 0.633, "unit" : "μs"}]
+            }
+
+        ]
+
+
+}
