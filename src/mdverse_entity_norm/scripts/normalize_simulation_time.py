@@ -5,13 +5,24 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import click
+import instructor
 from dotenv import load_dotenv
 from loguru import logger
 from openai import OpenAI
+from pydantic import BaseModel
 
 load_dotenv()
 
-GROUND_TRUTH = "data/STIME_ground_truth.json"
+
+class simulationTime(BaseModel):
+    value: float | int | None = None
+    unit: str | None = None
+
+
+class norm_simu_time(BaseModel):
+    input: str
+    output: list[simulationTime]
+
 
 PROMPT = """You are a unit normalization assistant for simulation time values.
 Your task: Convert all time units to standard abbreviations (ps, ns, μs, ms, s)
@@ -19,11 +30,6 @@ and split values from units.
 
 Rules:
 - No markdown, no explanation.
-- The output must be an array of objects with these exact keys:
-  "input" (the original token as found), "output" (a list of dictionary, each one
-    containing 2 keys : "value for the normalized value and "unit" for  the normalized unit,
-    if there is an interval then the
-    list will have 2 dictionnary one for each limit of the interval).
 - Standard units to use: ps (picoseconds), ns (nanoseconds), μs (microseconds),
     ms (milliseconds), s (seconds)
 - Preserve the original order of values found in the text
@@ -36,7 +42,7 @@ Rules:
  """
 
 
-def normalize_simulation_time(raw_simulation_time: str) -> str:
+def normalize_simulation_time(raw_simulation_time: str):
     """Normalize the units in the simulation time text to standard units.
 
     Parameters
@@ -48,9 +54,11 @@ def normalize_simulation_time(raw_simulation_time: str) -> str:
     -------
         A string containing the normalized simulation time values in JSON format.
     """
-    client = OpenAI(
-        base_url="https://openrouter.ai/api/v1",
-        api_key=os.getenv("OPEN_ROUTER_KEY"),
+    client = instructor.from_openai(
+        OpenAI(
+            base_url="https://openrouter.ai/api/v1",
+            api_key=os.getenv("OPEN_ROUTER_KEY"),
+        )
     )
 
     # Read the input file
@@ -58,6 +66,7 @@ def normalize_simulation_time(raw_simulation_time: str) -> str:
     logger.info("Normalisation of simulation times ...")
     completion = client.chat.completions.create(
         model="openai/gpt-4o",
+        response_model=norm_simu_time,
         messages=[
             {
                 "role": "system",
@@ -70,14 +79,13 @@ def normalize_simulation_time(raw_simulation_time: str) -> str:
         ],
     )
     logger.info("Normalisation of simulation times complete")
-    normalized_content = completion.choices[0].message.content
-    if normalized_content is None:
+    if completion is None:
         logger.error("Error: No content in response")
         return ""
     else:
-        logger.info(normalized_content)
+        logger.info(completion)
         logger.success("Normalisation of the data was successful")
-        return normalized_content.strip()
+        return completion.model_dump_json()
 
 
 @click.command()
@@ -132,6 +140,7 @@ if __name__ == "__main__":
         "0.633 us",
     ]
     for example in example_simulation:
-        print(f"input : {example} output : {normalize_simulation_time(example)}")
+        # print(f"input : {example} output : {normalize_simulation_time(example)}")
+        print(normalize_simulation_time(example))
 
     # create_norm_simulation_time_file()
