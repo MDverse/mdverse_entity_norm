@@ -1,10 +1,10 @@
 """Script to normalize the simlation times into standard units."""
 
+import json
 import os
 from datetime import UTC, datetime
 from pathlib import Path
 
-import click
 import instructor
 from dotenv import load_dotenv
 from loguru import logger
@@ -40,6 +40,26 @@ Rules:
 - If the unit is k or is missing define the normalized value of the unit to "None"
 - If the value is missing define the normalized value to "None"
  """
+
+
+def load_simulation_times(file_path: Path) -> list:
+    """Load simulation times from a file into a list.
+
+    Parameters
+    ----------
+    file_path (Path): Path to the input file containing the simulation times
+
+    Returns
+    -------
+    list: A list of  simulation times loaded from the file
+    """
+    logger.info(f"Loading the simulation times from {file_path}...")
+    times = []
+    with open(file_path) as raw_simu_times_file:
+        for line in raw_simu_times_file:
+            times.append(line.strip())
+    logger.success(f"Loaded {len(times)} simulation times successfully.")
+    return times
 
 
 def normalize_simulation_time(raw_simulation_time: str):
@@ -88,23 +108,8 @@ def normalize_simulation_time(raw_simulation_time: str):
         return completion.model_dump_json()
 
 
-@click.command()
-@click.option(
-    "--raw_simulation_time",
-    default="data/STIME.txt",
-    type=click.Path(exists=True, file_okay=True, path_type=Path),
-    help="Path to the input file containing the raw simulation times",
-)
-@click.option(
-    "--normalized_simulation_time",
-    default="results/normalized_simulation_time.txt",
-    type=click.Path(exists=True, file_okay=True, path_type=Path),
-    help="Path to the output file containing the simulation times",
-)
-def create_norm_simulation_time_file(
-    raw_simulation_time: Path, normalized_simulation_time: Path
-):
-    """Create a txt file with the normalized values.
+def format_norm_simulation_time(raw_simulation_time: list) -> dict:
+    """Format the normalized time to a JSON format with the normalized values.
 
     Parameters
     ----------
@@ -112,13 +117,31 @@ def create_norm_simulation_time_file(
                                 the raw simulation times
     normalized_simulation_time (Path) : Path to the output file containing
                                 the normalized simulation times
+
+    Returns
+    -------
+    dict[list] : dictonarry that contains the results of the simulation times normalisation
     """
-    with (
-        open(raw_simulation_time) as file_1,
-        open(normalized_simulation_time, "w") as file_2,
-    ):
-        for line in file_1:
-            file_2.writelines(f"{normalize_simulation_time(line)}\n")
+    all_simulation_times_norm = []
+    normalisation_output = {}
+    logger.info("Normalizing the simulation times...")
+    for simulation_times in raw_simulation_time:
+        normalize_time = normalize_simulation_time(simulation_times)
+        normalize_time_to_dict = json.loads(normalize_time)
+        all_simulation_times_norm.append(normalize_time_to_dict)
+    normalisation_output["normalisation_output"] = all_simulation_times_norm
+    logger.success("Normalizing the simulation times successfull")
+    return normalisation_output
+
+
+def save_norm_simulation_results(
+    normalisation_output: dict, normalized_simulation_time: Path
+):
+    """Generate a JSON file with the results of the simulation times normalisation."""
+    logger.info("Saving the normalisation results in the JSON file")
+    with open(normalized_simulation_time, "w") as file_1:
+        json.dump(normalisation_output, file_1, indent=4, ensure_ascii=False)
+    logger.success("Saving results to JSON file successful")
 
 
 if __name__ == "__main__":
@@ -139,8 +162,14 @@ if __name__ == "__main__":
         "8 microseconds",
         "0.633 us",
     ]
-    for example in example_simulation:
-        # print(f"input : {example} output : {normalize_simulation_time(example)}")
-        print(normalize_simulation_time(example))
+    normalisation_output = format_norm_simulation_time(example_simulation)
+    print(normalisation_output)
+    save_norm_simulation_results(
+        normalisation_output, Path("results/normalized_simulation_time.json")
+    )
+
+    # for example in example_simulation:
+    #     # print(f"input : {example} output : {normalize_simulation_time(example)}")
+    #     print(normalize_simulation_time(example))
 
     # create_norm_simulation_time_file()
