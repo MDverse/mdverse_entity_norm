@@ -1,0 +1,42 @@
+{
+    "groundtruth" :
+        [
+            {
+                "input" : "300",
+                "output" : [{"value" : 300, "unit" : "k"}]
+            },
+            {
+                "input" : "300 k",
+                "output" : [{"value" : 300, "unit" : "k"}]
+            },
+            {
+                "input" : "27",
+                "output" : [{"value" : 27, "unit" : "k"}]
+            },
+            {
+                "input" : "300k",
+                "output" : [{"value" : 300, "unit" : "k"}]
+            },
+            {
+                "input" : "0c",
+                "output" : [{"value" : 273.15, "unit" : "k"}]
+            },
+            {
+                "input" : "37 celsius",
+                "output" : [{"value" : 310.15, "unit" : "k"}]
+            },
+            {
+                "input" : "37°C",
+                "output" : [{"value" : 310.15, "unit" : "k"}]
+            },
+            {
+                "input" : "310.15°K",
+                "output" : [{"value" : 310.15, "unit" : "k"}]
+            },
+            {
+                "input" : "20 Celsius",
+                "output" : [{"value" : 293.15, "unit" : "k"}]
+            }
+        ]
+
+}
