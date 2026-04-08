@@ -5,6 +5,7 @@ import os
 from datetime import UTC, datetime
 from pathlib import Path
 
+import click
 import instructor
 from dotenv import load_dotenv
 from loguru import logger
@@ -41,21 +42,21 @@ Rules:
  """
 
 
-def load_simulation_times(file_path: Path) -> list:
+def load_simulation_times(raw_simu_times_file: Path) -> list:
     """Load simulation times from a file into a list.
 
     Parameters
     ----------
-    file_path (Path): Path to the input file containing the simulation times
+    raw_simu_times_file (Path): Path to the input file containing the simulation times
 
     Returns
     -------
     list: A list of  simulation times loaded from the file
     """
-    logger.info(f"Loading the simulation times from {file_path}...")
+    logger.info(f"Loading the simulation times from {raw_simu_times_file}...")
     times = []
-    with open(file_path) as raw_simu_times_file:
-        for line in raw_simu_times_file:
+    with open(raw_simu_times_file) as file_1:
+        for line in file_1:
             times.append(line.strip())
     logger.success(f"Loaded {len(times)} simulation times successfully.")
     return times
@@ -143,13 +144,24 @@ def save_norm_simulation_results(
     logger.success("Saving results to JSON file successful")
 
 
-if __name__ == "__main__":
-    timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
-    os.makedirs("logs", exist_ok=True)
-    logger.add(
-        f"logs/normalize_simulation_time{timestamp}.log",
-        level="DEBUG",
-    )
+@click.command()
+@click.option(
+    "--normalized_simulation_time",
+    default="results/normalized_simulation_time.json",
+    type=click.Path(exists=True, file_okay=True, path_type=Path),
+    help="Path to the JSON output file containing the normalized simulation times",
+)
+@click.option(
+    "--raw_simu_times_file",
+    default="data/STIME.txt",
+    type=click.Path(exists=True, file_okay=True, path_type=Path),
+    help="Path to the input file containing the raw simulation times",
+)
+def main_normalizing_simulation_times(
+    raw_simu_times_file: Path, normalized_simulation_time: Path
+):
+    times = load_simulation_times(raw_simu_times_file)
+    times = times[:5]
     example_simulation = [
         "10ns",
         "one hundred nanosecond",
@@ -160,9 +172,27 @@ if __name__ == "__main__":
         "5-microsecond",
         "8 microseconds",
         "0.633 us",
+        "1069 ns",
+        "1.6 ns",
+        "4-microsecond",
+        "500 ps",
+        "200 to 300 ns",
+        "300 nanoseconds",
+        "700ns",
+        "3 μs",
+        "0.5μs",
+        "157 nanosecs",
     ]
     normalisation_output = format_norm_simulation_time(example_simulation)
     print(normalisation_output)
-    save_norm_simulation_results(
-        normalisation_output, Path("results/normalized_simulation_time.json")
+    save_norm_simulation_results(normalisation_output, normalized_simulation_time)
+
+
+if __name__ == "__main__":
+    timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
+    os.makedirs("logs", exist_ok=True)
+    logger.add(
+        f"logs/normalize_simulation_time{timestamp}.log",
+        level="DEBUG",
     )
+    main_normalizing_simulation_times()
