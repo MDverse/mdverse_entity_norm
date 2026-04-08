@@ -160,6 +160,7 @@ def save_norm_simulation_results(
 def main_normalizing_simulation_times(
     raw_simu_times_file: Path, normalized_simulation_time: Path
 ):
+    """Normalize the simulation times entities bu running all annexe functions."""
     times = load_simulation_times(raw_simu_times_file)
     times = times[:5]
     example_simulation = [
