@@ -54,3 +54,11 @@ The `grounded_molecules.tsv` file has six columns :
 The`non_grounded_molecules.tsv` file has two columns :
     `Entity_name` : corresponding to the original molecule name that could not be        grounded
     `error` : corresponding to the error code obtained during the grounding process.
+
+### Normalize simulation times
+To normalize simulation time entities, run :
+
+```sh
+uv run src/mdverse_entity_norm/scripts/normalize_simulation_time.py --raw_simu_times_file data/STIME.txt --normalized_simulation_time results/normalized_simulation_time.json
+```
+> This command generates a file named `normalized_simulation_time.json` in the `results` directory, containing the normalized simulation time entities. The file is in JSON format, where each key is a simulation time entity and its corresponding value is the normalized simulation time value and time unit in the standard format. If a simulation time entity could not be normalized, its value will be `null`.
