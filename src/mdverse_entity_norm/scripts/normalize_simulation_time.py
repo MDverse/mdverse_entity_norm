@@ -34,7 +34,6 @@ Rules:
     ms (milliseconds), s (seconds)
 - Preserve the original order of values found in the text
 - Always split value and unit (e.g. "500ns" → value: 500, unit: "ns")
-- If there is an interval (e.g. "500-1000ns"), follow the ground truth exemple
 - Take in consideration values written in letter (e.g. "one hundred"), and transfrom it
     to a numeric value
 - If the unit is k or is missing define the normalized value of the unit to "None"
@@ -167,9 +166,3 @@ if __name__ == "__main__":
     save_norm_simulation_results(
         normalisation_output, Path("results/normalized_simulation_time.json")
     )
-
-    # for example in example_simulation:
-    #     # print(f"input : {example} output : {normalize_simulation_time(example)}")
-    #     print(normalize_simulation_time(example))
-
-    # create_norm_simulation_time_file()
