@@ -120,4 +120,18 @@ if __name__ == "__main__":
         f"logs/normalize_simulation_time{timestamp}.log",
         level="DEBUG",
     )
-    create_norm_simulation_time_file()
+    example_simulation = [
+        "10ns",
+        "one hundred nanosecond",
+        "multi-microsecond",
+        "6microseconds",
+        "100–200 ns",
+        "1.5 micro-sec",
+        "5-microsecond",
+        "8 microseconds",
+        "0.633 us",
+    ]
+    for example in example_simulation:
+        print(f"input : {example} output : {normalize_simulation_time(example)}")
+
+    # create_norm_simulation_time_file()
