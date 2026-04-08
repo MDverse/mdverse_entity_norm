@@ -1,6 +1,5 @@
 """Script to normalize the simlation times into standard units."""
 
-import json
 import os
 from datetime import UTC, datetime
 from pathlib import Path
@@ -12,6 +11,8 @@ from openai import OpenAI
 
 load_dotenv()
 
+GROUND_TRUTH = "data/STIME_ground_truth.json"
+
 PROMPT = """You are a unit normalization assistant for simulation time values.
 Your task: Convert all time units to standard abbreviations (ps, ns, μs, ms, s)
 and split values from units.
@@ -19,7 +20,10 @@ and split values from units.
 Rules:
 - No markdown, no explanation.
 - The output must be an array of objects with these exact keys:
-  "raw" (the original token as found), "value" (number), "unit" (standard unit).
+  "input" (the original token as found), "output" (a list of dictionary, each one
+    containing 2 keys : "value for the normalized value and "unit" for  the normalized unit,
+    if there is an interval then the
+    list will have 2 dictionnary one for each limit of the interval).
 - Standard units to use: ps (picoseconds), ns (nanoseconds), μs (microseconds),
     ms (milliseconds), s (seconds)
 - Preserve the original order of values found in the text
@@ -30,12 +34,9 @@ Rules:
 - If the unit is k or is missing define the normalized value of the unit to "None"
 - If the value is missing define the normalized value to "None"
  """
-GROUND_TRUTH = "data/STIME_ground_truth.json"
 
 
-def normalize_simulation_time(
-    simulation_time_filepath: Path,
-) -> str:
+def normalize_simulation_time(raw_simulation_time: str) -> str:
     """Normalize the units in the simulation time text to standard units.
 
     Parameters
@@ -53,7 +54,7 @@ def normalize_simulation_time(
     )
 
     # Read the input file
-    content = simulation_time_filepath.read_text()
+    # content = simulation_time_filepath.read_text()
     logger.info("Normalisation of simulation times ...")
     completion = client.chat.completions.create(
         model="openai/gpt-4o",
@@ -64,8 +65,7 @@ def normalize_simulation_time(
             },
             {
                 "role": "user",
-                "content": f"The file you will be working on is : {content}, "
-                f"the normalized data must follow the output format in  {GROUND_TRUTH}",
+                "content": f"The simulation time you will be working on is : {raw_simulation_time}",
             },
         ],
     )
@@ -75,6 +75,7 @@ def normalize_simulation_time(
         logger.error("Error: No content in response")
         return ""
     else:
+        logger.info(normalized_content)
         logger.success("Normalisation of the data was successful")
         return normalized_content.strip()
 
@@ -88,31 +89,28 @@ def normalize_simulation_time(
 )
 @click.option(
     "--normalized_simulation_time",
-    default="results/normalized_simulation_time.tsv",
+    default="results/normalized_simulation_time.txt",
     type=click.Path(exists=True, file_okay=True, path_type=Path),
     help="Path to the output file containing the simulation times",
 )
-def save_normalised_simulation_time_into_tsv(
+def create_norm_simulation_time_file(
     raw_simulation_time: Path, normalized_simulation_time: Path
 ):
-    """Save the normalized content to a TSV file.
+    """Create a txt file with the normalized values.
 
     Parameters
     ----------
-    normalized_simulation_time: The path to the output TSV file where the normalized
-    simulation time values will be saved.
+    raw_simulation_time (Path) : Path to the input file containing
+                                the raw simulation times
+    normalized_simulation_time (Path) : Path to the output file containing
+                                the normalized simulation times
     """
-    normalized_content = normalize_simulation_time(raw_simulation_time)
-    elements = json.loads(normalized_content)
-    header = ["raw\tvalue\tunit\n"]
-    lines = []
-    logger.info("Writting the normalised simulation time in the .csv file")
-    for element in elements:
-        lines.extend(f"{element['raw']}\t{element['value']!s}\t{element['unit']}\n")
-    with open(normalized_simulation_time, "w") as normalized_file:
-        normalized_file.write(header[0])
-        normalized_file.writelines(lines)
-    logger.info("The .tsv file is complete")
+    with (
+        open(raw_simulation_time) as file_1,
+        open(normalized_simulation_time, "w") as file_2,
+    ):
+        for line in file_1:
+            file_2.writelines(f"{normalize_simulation_time(line)}\n")
 
 
 if __name__ == "__main__":
@@ -122,4 +120,4 @@ if __name__ == "__main__":
         f"logs/normalize_simulation_time{timestamp}.log",
         level="DEBUG",
     )
-    save_normalised_simulation_time_into_tsv()
+    create_norm_simulation_time_file()
