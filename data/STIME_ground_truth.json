@@ -1,5 +1,5 @@
 {
-    "GroundTruth" :
+    "groundtruth" :
         [
             {
                 "input" : "10ns",
