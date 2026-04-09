@@ -186,27 +186,27 @@ def evaluate_normalisation(ground_truth_file: str, normalise_times_file: str):
                 f"different input for result and groundtruth : {results['input']} ≠"
                 f" {truth['input']}"
             )
-        for output_res, output_truth in zip(results["output"], truth["output"]):
-            if output_res["value"] == output_truth["value"]:
-                logger.info(
-                    f"same value for result and groundtruth : "
-                    f"{output_res['value']} = {output_truth['value']}"
-                )
-            else:
-                logger.warning(
-                    f"different value for result and groundtruth : "
-                    f"{output_res['value']} ≠ {output_truth['value']}"
-                )
-            if output_res["unit"] == output_truth["unit"]:
-                logger.info(
-                    f"same unit for result and groundtruth : "
-                    f"{output_res['unit']} = {output_truth['unit']}"
-                )
-            else:
-                logger.warning(
-                    f"different unit for result and groundtruth : "
-                    f"{output_res['unit']} ≠ {output_truth['unit']}"
-                )
+    for output_res, output_truth in zip(results["output"], truth["output"]):
+        if output_res["value"] == output_truth["value"]:
+            logger.info(
+                f"same value for result and groundtruth : "
+                f"{output_res['value']} = {output_truth['value']}"
+            )
+        else:
+            logger.warning(
+                f"different value for result and groundtruth : "
+                f"{output_res['value']} ≠ {output_truth['value']}"
+            )
+        if output_res["unit"] == output_truth["unit"]:
+            logger.info(
+                f"same unit for result and groundtruth : "
+                f"{output_res['unit']} = {output_truth['unit']}"
+            )
+        else:
+            logger.warning(
+                f"different unit for result and groundtruth : "
+                f"{output_res['unit']} ≠ {output_truth['unit']}"
+            )
 
     logger.success("Evaluation of the normalisation results complete")
 
