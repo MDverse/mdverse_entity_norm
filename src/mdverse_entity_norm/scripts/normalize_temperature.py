@@ -5,6 +5,8 @@ This module provides regular expression matching operations.
 
 import re
 
+from loguru import logger
+
 
 def norm_temp(temp_str: str) -> tuple:
     """Normalize the value of a temperature.
@@ -31,9 +33,11 @@ def norm_temp(temp_str: str) -> tuple:
     #   an optional unit because of the "?" symbol at the end of the group.
     #   This group consists of zero or more spaces, because of the "*" symbol,
     #   an optional degree symbol, then zero or more spaces, and zero or more letters.
+    logger.info("Normalising temperature entities ...")
     temperature_match = re.search(r"([0-9]+)(\.?[0-9]+)?( *°? *[a-z]*)?", temp_str)
     if temperature_match is None:
         return None, None
+    logger.info("Found temperature entity...")
     temperature_integer_part = temperature_match.group(1)
     temperature_decimal_part = temperature_match.group(2)
     temperature_unit = temperature_match.group(3)
