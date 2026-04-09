@@ -159,6 +159,58 @@ def save_norm_simulation_results(
     logger.success("Saving results to JSON file successful")
 
 
+def evaluate_normalisation(ground_truth_file: str, normalise_times_file: str):
+    """Compare the LLM normalisation to the ground_truth to evaluate the normalisaion.
+
+    Parameters
+    ----------
+    ground_truth_file (str) : Name of the ground truth file
+    normalise_times_file (str) : Name of the file containing the results of the
+                                 normalisation
+
+    """
+    logger.info("Evaluating the normalisation results...")
+    with open(ground_truth_file) as file_1, open(normalise_times_file) as file_2:
+        ground_truth = json.load(file_1)
+        normalisation_results = json.load(file_2)
+    ground_truth = ground_truth["groundtruth"]
+    normalisation_results = normalisation_results["normalisation_output"]
+    for results, truth in zip(normalisation_results, ground_truth):
+        if results["input"] == truth["input"]:
+            logger.info(
+                f"same input for result and groundtruth : {results['input']} = "
+                f"{truth['input']}"
+            )
+        else:
+            logger.warning(
+                f"different input for result and groundtruth : {results['input']} ≠"
+                f" {truth['input']}"
+            )
+        for output_res, output_truth in zip(results["output"], truth["output"]):
+            if output_res["value"] == output_truth["value"]:
+                logger.info(
+                    f"same value for result and groundtruth : "
+                    f"{output_res['value']} = {output_truth['value']}"
+                )
+            else:
+                logger.warning(
+                    f"different value for result and groundtruth : "
+                    f"{output_res['value']} ≠ {output_truth['value']}"
+                )
+            if output_res["unit"] == output_truth["unit"]:
+                logger.info(
+                    f"same unit for result and groundtruth : "
+                    f"{output_res['unit']} = {output_truth['unit']}"
+                )
+            else:
+                logger.warning(
+                    f"different unit for result and groundtruth : "
+                    f"{output_res['unit']} ≠ {output_truth['unit']}"
+                )
+
+    logger.success("Evaluation of the normalisation results complete")
+
+
 @click.command()
 @click.option(
     "--normalized_simulation_time",
@@ -202,6 +254,10 @@ def main_normalizing_simulation_times(
     normalisation_output = format_norm_simulation_time(example_simulation)
     print(normalisation_output)
     save_norm_simulation_results(normalisation_output, normalized_simulation_time)
+    evaluate_normalisation(
+        "data/STIME_ground_truth.json",
+        "results/norm_simu_times/normalized_simulation_time_deepseek.json",
+    )
 
 
 if __name__ == "__main__":
