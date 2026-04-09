@@ -10,7 +10,6 @@ from pathlib import Path
 import click
 import gilda
 import httpx
-import pandas as pd
 from loguru import logger
 
 # API endpoints for different molecular databases
@@ -40,7 +39,7 @@ def load_molecule(file_path: Path) -> list:
     return molecules
 
 
-def get_type(entry: str) -> str:
+def get_type(entry: str) -> str | None:
     """Determine the molecular entity type based on regex pattern.
 
     Parameters
@@ -49,7 +48,8 @@ def get_type(entry: str) -> str:
 
     Returns
     -------
-    str: The entity type ("PDB", "UNIPROT", "DNA", "RNA", or "CHEBI")
+    str | None : The entity type ("PDB", "UNIPROT", "DNA", "RNA").
+                Otherwise, return None for others.
     """
     entry = entry.replace(
         "`", "'"
@@ -79,9 +79,6 @@ def get_type(entry: str) -> str:
         and len(entry) > 4
     ):
         return "PROTEIN"
-    # Default to ChEBI/GILDA for other chemical entities
-    else:
-        return "CHEBI/GILDA"
 
 
 def call_chebi(entity_name: str) -> dict:
@@ -339,8 +336,51 @@ def call_sequence(entity_name: str) -> dict:
         }
 
 
+def ground_whole_molecule(molecule: str):
+    """Ground molecules from all Chebi, Gilda, Pubchem, sequence matching.
+
+    Parameters
+    ----------
+    molecule: The name of the molecule.
+
+    Returns
+    -------
+    tuple[list[dict], list[str]]: Lists of molecules found and molecules not found
+    during the grounding
+    """
+    results_found = []
+    results_not_found = []
+
+    logger.info(f"Trying to ground `{molecule}` using ChEBI...")
+    result = call_chebi(molecule)
+    if "error" not in result:
+        results_found.append(result)
+    else:
+        logger.info(f"Trying to ground `{molecule}` using Gilda...")
+        results_not_found.append(result)
+        result = call_gilda(molecule)
+        if "error" not in result:
+            results_found.append(result)
+        else:
+            logger.info(f"Trying to ground `{molecule}` using PubChem...")
+            results_not_found.append(result)
+            result = call_pubchem(molecule)
+            if "error" not in result:
+                results_found.append(result)
+            else:
+                logger.info(f"Trying to classify `{molecule}` as a sequence...")
+                results_not_found.append(result)
+                result = call_sequence(molecule)
+                if "error" in result:
+                    results_not_found.append(result)
+    logger.success(
+        f"Molecule grounding completed : found {len(results_found)} molecules"
+    )
+    return results_found, results_not_found
+
+
 def grouding_mol(molecules: list[str]) -> tuple[list[dict], list[dict]]:
-    """Ground molecules from Chepubchembi.
+    """Ground molecules from all databases.
 
     Parameters
     ----------
@@ -348,8 +388,8 @@ def grouding_mol(molecules: list[str]) -> tuple[list[dict], list[dict]]:
 
     Returns
     -------
-    tuple[list[dict], list[str]]: Lists of molecules found and molecules not found during
-    the grounding
+    tuple[list[dict], list[str]]: Lists of molecules found and molecules not found
+    during the grounding
     """
     logger.info("Starting molecule grounding from pubchem...")
     # The ressults_found contains :
@@ -361,46 +401,94 @@ def grouding_mol(molecules: list[str]) -> tuple[list[dict], list[dict]]:
     results_not_found = []
 
     for molecule in molecules:
-        result = call_pdb(molecule)
-        if "error" not in result:
-            results_found.append(result)
-        else:
-            results_not_found.append(result)
-            logger.info(f"Trying to ground `{molecule}` using UniProt...")
+        if get_type(molecule) == "PDB":
+            result = call_pdb(molecule)
+            if "error" not in result:
+                results_found.append(result)
+            else:
+                grounded, not_grounded = ground_whole_molecule(molecule)
+                results_found.extend(grounded)
+                results_not_found.extend(not_grounded)
+        elif get_type(molecule) == "UNIPROT":
             result = call_uniprot(molecule)
             if "error" not in result:
                 results_found.append(result)
             else:
-                logger.info(f"Trying to ground `{molecule}` using ChEBI...")
-                results_not_found.append(result)
-                result = call_chebi(molecule)
-                if "error" not in result:
-                    results_found.append(result)
-                else:
-                    logger.info(f"Trying to ground `{molecule}` using Gilda...")
-                    results_not_found.append(result)
-                    result = call_gilda(molecule)
-                    if "error" not in result:
-                        results_found.append(result)
-                    else:
-                        logger.info(f"Trying to ground `{molecule}` using PubChem...")
-                        results_not_found.append(result)
-                        result = call_pubchem(molecule)
-                        if "error" not in result:
-                            results_found.append(result)
-                        else:
-                            logger.info(
-                                f"Trying to classify `{molecule}` as a sequence..."
-                            )
-                            results_not_found.append(result)
-                            result = call_sequence(molecule)
-                            if "error" in result:
-                                results_not_found.append(result)
-
+                grounded, not_grounded = ground_whole_molecule(molecule)
+                results_found.extend(grounded)
+                results_not_found.extend(not_grounded)
+        else:
+            grounded, not_grounded = ground_whole_molecule(molecule)
+            results_found.extend(grounded)
+            results_not_found.extend(not_grounded)
     logger.success(
         f"Molecule grounding completed : found {len(results_found)} molecules"
     )
     return results_found, results_not_found
+
+
+# def grouding_mol(molecules: list[str]) -> tuple[list[dict], list[dict]]:
+#     """Ground molecules from Chepubchembi.
+
+#     Parameters
+#     ----------
+#     molecules (ist[str]): List containing the raw molecule names
+
+#     Returns
+#     -------
+#     tuple[list[dict], list[str]]: Lists of molecules found and molecules not found during
+#     the grounding
+#     """
+#     logger.info("Starting molecule grounding from pubchem...")
+#     # The ressults_found contains :
+#     # - id : The pubchem identifier
+#     # - score : The score search
+#     # - name : The full name of the entity
+#     # - nb_res : The number of results found by the GILDA Grounding
+#     results_found = []
+#     results_not_found = []
+
+#     for molecule in molecules:
+#         result = call_pdb(molecule)
+#         if "error" not in result:
+#             results_found.append(result)
+#         else:
+#             results_not_found.append(result)
+#             logger.info(f"Trying to ground `{molecule}` using UniProt...")
+#             result = call_uniprot(molecule)
+#             if "error" not in result:
+#                 results_found.append(result)
+#             else:
+#                 logger.info(f"Trying to ground `{molecule}` using ChEBI...")
+#                 results_not_found.append(result)
+#                 result = call_chebi(molecule)
+#                 if "error" not in result:
+#                     results_found.append(result)
+#                 else:
+#                     logger.info(f"Trying to ground `{molecule}` using Gilda...")
+#                     results_not_found.append(result)
+#                     result = call_gilda(molecule)
+#                     if "error" not in result:
+#                         results_found.append(result)
+#                     else:
+#                         logger.info(f"Trying to ground `{molecule}` using PubChem...")
+#                         results_not_found.append(result)
+#                         result = call_pubchem(molecule)
+#                         if "error" not in result:
+#                             results_found.append(result)
+#                         else:
+#                             logger.info(
+#                                 f"Trying to classify `{molecule}` as a sequence..."
+#                             )
+#                             results_not_found.append(result)
+#                             result = call_sequence(molecule)
+#                             if "error" in result:
+#                                 results_not_found.append(result)
+
+#     logger.success(
+#         f"Molecule grounding completed : found {len(results_found)} molecules"
+#     )
+#     return results_found, results_not_found
 
 
 def save_found_results_into_tsv(
@@ -467,54 +555,6 @@ def save_not_found_results_into_tsv(
             )
 
 
-def compare_grounding(chebi_file: str, gilda_file: str, intersection_file: str) -> None:
-    """Compare ChEBI and GILDA grounding results.
-
-        Generate intersection and difference files.
-
-    Parameters
-    ----------
-    chebi_file (str): Path to the ChEBI grounding results TSV file
-    gilda_file (str): Path to the GILDA grounding results TSV file
-    intersection_file (str): Path to the output intersection TSV file
-    """
-    df_chebi = pd.read_csv(chebi_file, sep="\t")
-    df_gilda = pd.read_csv(gilda_file, sep="\t")
-
-    df_chebi["Source"] = "CHEBI"
-    df_gilda["Source"] = "GILDA"
-
-    df_merged = df_chebi.merge(df_gilda, how="outer")
-    df_merged.to_csv(intersection_file, sep="\t", index=False)
-
-
-def diff_grounding(
-    chebi_filename: str, gilda_filename: str, diff_file: str
-) -> pd.DataFrame:
-    """Generate a file containing the differences between ChEBI and GILDA grounding results.
-
-    Parameters
-    ----------
-    chebi_filename (str): Path to the ChEBI grounding results TSV file
-    gilda_filename (str): Path to the GILDA grounding results TSV file
-    diff_file (str): Path to the output difference TSV file
-
-    Returns
-    -------
-    dataFrame: Result dataframe containing the
-    """
-    df_chebi = pd.read_csv(chebi_filename, sep="\t")
-    df_gilda = pd.read_csv(gilda_filename, sep="\t")
-
-    df_merged = df_chebi.merge(df_gilda, how="outer")
-    df_merged = df_merged.drop("Type", axis=1)
-    df_merged = df_merged.drop("URL", axis=1)
-    df_merged = df_merged.drop("Stars", axis=1)
-    df_merged = df_merged.iloc[:, [0, 6, 1, 2, 4, 3, 5]]
-
-    return df_merged
-
-
 @click.command()
 @click.option(
     "--mol_filepath",
@@ -541,20 +581,11 @@ def ground_molecules(
     # Load molecule enntities from txt file
     molecules = load_molecule(mol_filepath)
     # Filter only the 5 first molecules for testing
-    molecules = molecules[:5]
+    molecules = molecules[:]
     # Grounding the molecule
     grounded_mols, not_grounded_mols = grouding_mol(molecules)
     save_found_results_into_tsv(grounded_mols, grounded_mol_filepath)
     save_not_found_results_into_tsv(not_grounded_mols, non_grounded_mol_filepath)
-
-    # Compare the grounding results from chebi and gilda
-    # logger.info("Comparing grounding results from ChEBI and GILDA...")
-    # compare_grounding(
-    #     "results/ground_mol_chebi.tsv",
-    #     "results/ground_mol_gilda.tsv",
-    #     "results/ground_mol_comparison.tsv",
-    # )
-    # logger.success("Grounding comparison completed.")
 
 
 if __name__ == "__main__":
