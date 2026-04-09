@@ -23,7 +23,7 @@
             },
                         {
                 "input" : "1.5 micro-sec",
-                "output" : [{"value" : 1.5, "unit" : "micro-sec"}]
+                "output" : [{"value" : 1.5, "unit" : "μs"}]
             },
                         {
                 "input" : "5-microsecond",
@@ -32,13 +32,51 @@
                         {
                 "input" : "8 microseconds",
                 "output" : [{"value" : 8, "unit" : "μs"}]
-            },
-            {
+            },                        {
+
                 "input" : "0.633 us",
                 "output" : [{"value" : 0.633, "unit" : "μs"}]
+            },                        {
+
+                "input" : "1069 ns",
+                "output" : [{"value" : 1069, "unit" : "ns"}]
+            },
+                        {
+                "input" : "1.6 ns",
+                "output" : [{"value" : 1.6, "unit" : "ns"}]
+            },
+                        {
+                "input" : "4-microsecond",
+                "output" : [{"value" : 4, "unit" : "μs"}]
+            },
+                        {
+                "input" : "500 ps",
+                "output" : [{"value" : 500, "unit" : "ps"}]
+            },
+                        {
+                "input" : "200 to 300 ns",
+                "output" : [{"value" : 200, "unit" : "ns"}, {"value" : 300, "unit" : "ns"}]
+            },           {
+                "input" : "300 nanoseconds",
+                "output" : [{"value" : 300, "unit" : "ns"}]
+            },
+                         {
+                "input" : "700ns",
+                "output" : [{"value" : 700, "unit" : "ns"}]
+            },
+                        {
+                "input" : "3 μs",
+                "output" : [{"value" : 3, "unit" : "μs"}]
+            },
+                        {
+                "input" : "0.5μs",
+                "output" : [{"value" : 0.5, "unit" : "μs"}]
+            },
+                       {
+                "input" : "157 nanosecs",
+                "output" : [{"value" : 157, "unit" : "ns"}]
             }
 
         ]
-
 
 }
