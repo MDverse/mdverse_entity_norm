@@ -8,21 +8,32 @@ from pathlib import Path
 import click
 import instructor
 from dotenv import load_dotenv
+from instructor.exceptions import InstructorRetryException
 from loguru import logger
 from openai import OpenAI
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 load_dotenv()
 
 
-class simulationTime(BaseModel):
-    value: float | int | None = None
-    unit: str | None = None
+class SimulationTime(BaseModel):
+    """Define the structure of simulation time entity."""
+
+    value: float | None = Field(
+        ..., description="Normalized value ofthe simulation time"
+    )
+    unit: str | None = Field(
+        ..., max_length=2, description="Normalized unit ofthe simulation time"
+    )
 
 
-class norm_simu_time(BaseModel):
-    input: str
-    output: list[simulationTime]
+class NormSimuTime(BaseModel):
+    """Define the structure for the output of the LLM."""
+
+    input: str = Field(..., description="raw value of one simulaton time")
+    output: list[SimulationTime] = Field(
+        ..., description="normalized simulation timevalues and units"
+    )
 
 
 PROMPT = """You are a unit normalization assistant for simulation time values.
@@ -84,28 +95,30 @@ def normalize_simulation_time(raw_simulation_time: str):
     # Read the input file
     # content = simulation_time_filepath.read_text()
     logger.info("Normalisation of simulation times ...")
-    completion = client.chat.completions.create(
-        model="openai/gpt-4o",
-        response_model=norm_simu_time,
-        messages=[
-            {
-                "role": "system",
-                "content": f"{PROMPT}",
-            },
-            {
-                "role": "user",
-                "content": f"The simulation time you will be working on is : {raw_simulation_time}",
-            },
-        ],
-    )
+    try:
+        completion = client.chat.completions.create(
+            model="openai/gpt-4o",
+            max_retries=3,
+            response_model=NormSimuTime,
+            messages=[
+                {
+                    "role": "system",
+                    "content": f"{PROMPT}",
+                },
+                {
+                    "role": "user",
+                    "content": f"{raw_simulation_time}",
+                },
+            ],
+        )
+    except InstructorRetryException as exc:
+        logger.warning(f"Failed after {exc.n_attempts} attempts")
+        return None
+
     logger.info("Normalisation of simulation times complete")
-    if completion is None:
-        logger.error("Error: No content in response")
-        return ""
-    else:
-        logger.info(completion)
-        logger.success("Normalisation of the data was successful")
-        return completion.model_dump_json()
+    logger.info(completion)
+    logger.success("Normalisation of the data was successful")
+    return completion.model_dump_json()
 
 
 def format_norm_simulation_time(raw_simulation_time: list) -> dict:
@@ -120,15 +133,17 @@ def format_norm_simulation_time(raw_simulation_time: list) -> dict:
 
     Returns
     -------
-    dict[list] : dictonarry that contains the results of the simulation times normalisation
+    dict[list] : dictonarry that contains the results of the simulation times
+    normalisation
     """
     all_simulation_times_norm = []
     normalisation_output = {}
     logger.info("Normalizing the simulation times...")
     for simulation_times in raw_simulation_time:
         normalize_time = normalize_simulation_time(simulation_times)
-        normalize_time_to_dict = json.loads(normalize_time)
-        all_simulation_times_norm.append(normalize_time_to_dict)
+        if normalize_time:
+            normalize_time_to_dict = json.loads(normalize_time)
+            all_simulation_times_norm.append(normalize_time_to_dict)
     normalisation_output["normalisation_output"] = all_simulation_times_norm
     logger.success("Normalizing the simulation times successfull")
     return normalisation_output
