@@ -34,7 +34,7 @@ uv run src/mdverse_entity_norm/scripts/normalize_temperature.py
 ### Ground molecules
 
 The logic behind the grounding of molecule entities is described in this image  below   :
-![Grounding logic](molecule_grounding_logic.png)
+![Grounding logic](molecules_grounding_logic.png)
 
 To ground molecules entities, run :
 
