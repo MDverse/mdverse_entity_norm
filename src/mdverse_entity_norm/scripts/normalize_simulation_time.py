@@ -159,22 +159,22 @@ def save_norm_simulation_results(
     logger.success("Saving results to JSON file successful")
 
 
-def evaluate_normalisation(ground_truth_file: str, normalise_times_file: str):
+def evaluate_normalisation(ground_truth_file: Path, normalized_simulation_time: Path):
     """Compare the LLM normalisation to the ground_truth to evaluate the normalisaion.
 
     Parameters
     ----------
     ground_truth_file (str) : Name of the ground truth file
-    normalise_times_file (str) : Name of the file containing the results of the
+    normalized_simulation_time (str) : Name of the file containing the results of the
                                  normalisation
 
     """
     logger.info("Evaluating the normalisation results...")
-    with open(ground_truth_file) as file_1, open(normalise_times_file) as file_2:
+    with open(ground_truth_file) as file_1, open(normalized_simulation_time) as file_2:
         ground_truth = json.load(file_1)
         normalisation_results = json.load(file_2)
-    ground_truth = ground_truth["groundtruth"]
-    normalisation_results = normalisation_results["normalisation_output"]
+        ground_truth = ground_truth["groundtruth"]
+        normalisation_results = normalisation_results["normalisation_output"]
     for results, truth in zip(normalisation_results, ground_truth):
         if results["input"] == truth["input"]:
             logger.info(
@@ -214,7 +214,7 @@ def evaluate_normalisation(ground_truth_file: str, normalise_times_file: str):
 @click.command()
 @click.option(
     "--normalized_simulation_time",
-    default="results/normalized_simulation_time.json",
+    default="results/normalized_simulation_time_gpt.json",
     type=click.Path(exists=True, file_okay=True, path_type=Path),
     help="Path to the JSON output file containing the normalized simulation times",
 )
@@ -224,8 +224,14 @@ def evaluate_normalisation(ground_truth_file: str, normalise_times_file: str):
     type=click.Path(exists=True, file_okay=True, path_type=Path),
     help="Path to the input file containing the raw simulation times",
 )
+@click.option(
+    "--ground_truth_file",
+    default="data/STIME_ground_truth.json",
+    type=click.Path(exists=True, file_okay=True, path_type=Path),
+    help="Path to the groundtruth file",
+)
 def main_normalizing_simulation_times(
-    raw_simu_times_file: Path, normalized_simulation_time: Path
+    raw_simu_times_file: Path, normalized_simulation_time: Path, ground_truth_file: Path
 ):
     """Normalize the simulation times entities bu running all annexe functions."""
     times = load_simulation_times(raw_simu_times_file)
@@ -254,10 +260,7 @@ def main_normalizing_simulation_times(
     normalisation_output = format_norm_simulation_time(example_simulation)
     print(normalisation_output)
     save_norm_simulation_results(normalisation_output, normalized_simulation_time)
-    evaluate_normalisation(
-        "data/STIME_ground_truth.json",
-        "results/norm_simu_times/normalized_simulation_time_deepseek.json",
-    )
+    evaluate_normalisation(ground_truth_file, normalized_simulation_time)
 
 
 if __name__ == "__main__":
