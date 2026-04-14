@@ -2,18 +2,23 @@
 
 import json
 import os
+import time
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Literal
 
 import click
 import instructor
 from dotenv import load_dotenv
+from instructor.core.exceptions import ValidationError
 from instructor.exceptions import InstructorRetryException
 from loguru import logger
 from openai import OpenAI
 from pydantic import BaseModel, Field
 
 load_dotenv()
+
+MODEL = ["openai/gpt-4o", "deepseek/deepseek-v3.2", "google/gemma-4-31b-it"]
 
 
 class SimulationTime(BaseModel):
@@ -22,8 +27,8 @@ class SimulationTime(BaseModel):
     value: float | None = Field(
         ..., description="Normalized value ofthe simulation time"
     )
-    unit: str | None = Field(
-        ..., max_length=2, description="Normalized unit ofthe simulation time"
+    unit: Literal["ps", "ns", "μs", "ms", "s"] | None = Field(
+        ..., max_length=2, description="Normalized unit of the simulation time"
     )
 
 
@@ -48,6 +53,7 @@ Rules:
 - Always split value and unit (e.g. "500ns" → value: 500, unit: "ns")
 - Take in consideration values written in letter (e.g. "one hundred"), and transfrom it
     to a numeric value
+- If the value is missing only take in consideration the unit
 - If the unit is k or is missing define the normalized value of the unit to "None"
 - If the value is missing define the normalized value to "None"
  """
@@ -73,7 +79,7 @@ def load_simulation_times(raw_simu_times_file: Path) -> list:
     return times
 
 
-def normalize_simulation_time(raw_simulation_time: str):
+def normalize_simulation_time(raw_simulation_time: str, model_name: str):
     """Normalize the units in the simulation time text to standard units.
 
     Parameters
@@ -92,12 +98,12 @@ def normalize_simulation_time(raw_simulation_time: str):
         )
     )
 
-    # Read the input file
-    # content = simulation_time_filepath.read_text()
-    logger.info("Normalisation of simulation times ...")
+    logger.info(f"Normalisation of {raw_simulation_time}...")
+
+    start_time = time.time()
     try:
         completion = client.chat.completions.create(
-            model="openai/gpt-4o",
+            model=model_name,
             max_retries=3,
             response_model=NormSimuTime,
             messages=[
@@ -115,13 +121,19 @@ def normalize_simulation_time(raw_simulation_time: str):
         logger.warning(f"Failed after {exc.n_attempts} attempts")
         return None
 
-    logger.info("Normalisation of simulation times complete")
+    except ValidationError as exc:
+        logger.warning(f"Pydantic validation failed:  {exc}")
+        return None
+
+    end_time = time.time()
+    inference_time = end_time - start_time
+    logger.info(f"Normalisation of simulation times complete in {inference_time}")
     logger.info(completion)
     logger.success("Normalisation of the data was successful")
-    return completion.model_dump_json()
+    return completion.model_dump_json(), inference_time
 
 
-def format_norm_simulation_time(raw_simulation_time: list) -> dict:
+def format_norm_simulation_time(raw_simulation_time: list, model_name: str) -> dict:
     """Format the normalized time to a JSON format with the normalized values.
 
     Parameters
@@ -139,11 +151,17 @@ def format_norm_simulation_time(raw_simulation_time: list) -> dict:
     all_simulation_times_norm = []
     normalisation_output = {}
     logger.info("Normalizing the simulation times...")
-    for simulation_times in raw_simulation_time:
-        normalize_time = normalize_simulation_time(simulation_times)
-        if normalize_time:
-            normalize_time_to_dict = json.loads(normalize_time)
-            all_simulation_times_norm.append(normalize_time_to_dict)
+    for simulation_time in raw_simulation_time:
+        normalization_result = normalize_simulation_time(simulation_time, model_name)
+        if normalization_result:
+            simulation_time_normalized = json.loads(normalization_result[0])
+            all_simulation_times_norm.append(simulation_time_normalized)
+        else:
+            simulation_time_not_normalized = {
+                "input": {simulation_time},
+                "output": normalization_result,
+            }
+            all_simulation_times_norm.append(simulation_time_not_normalized)
     normalisation_output["normalisation_output"] = all_simulation_times_norm
     logger.success("Normalizing the simulation times successfull")
     return normalisation_output
@@ -159,56 +177,99 @@ def save_norm_simulation_results(
     logger.success("Saving results to JSON file successful")
 
 
-def evaluate_normalisation(ground_truth_file: Path, normalized_simulation_time: Path):
-    """Compare the LLM normalisation to the ground_truth to evaluate the normalisaion.
+def evaluate_all_models_and_save_tsv(
+    raw_simulation_times: list, ground_truth_file: Path, runs: int
+):
+    """Evaluate all models and save results to TSV file."""
+    with open(ground_truth_file) as f:
+        ground_truth_data = json.load(f)
 
-    Parameters
-    ----------
-    ground_truth_file (str) : Name of the ground truth file
-    normalized_simulation_time (str) : Name of the file containing the results of the
-                                 normalisation
+    ground_truth_dict = {}
+    for truth in ground_truth_data["groundtruth"]:
+        ground_truth_dict[truth["input"]] = truth["output"]
 
-    """
-    logger.info("Evaluating the normalisation results...")
-    with open(ground_truth_file) as file_1, open(normalized_simulation_time) as file_2:
-        ground_truth = json.load(file_1)
-        normalisation_results = json.load(file_2)
-        ground_truth = ground_truth["groundtruth"]
-        normalisation_results = normalisation_results["normalisation_output"]
-    for results, truth in zip(normalisation_results, ground_truth):
-        if results["input"] == truth["input"]:
-            logger.info(
-                f"same input for result and groundtruth : {results['input']} = "
-                f"{truth['input']}"
-            )
-        else:
-            logger.warning(
-                f"different input for result and groundtruth : {results['input']} ≠"
-                f" {truth['input']}"
-            )
-    for output_res, output_truth in zip(results["output"], truth["output"]):
-        if output_res["value"] == output_truth["value"]:
-            logger.info(
-                f"same value for result and groundtruth : "
-                f"{output_res['value']} = {output_truth['value']}"
-            )
-        else:
-            logger.warning(
-                f"different value for result and groundtruth : "
-                f"{output_res['value']} ≠ {output_truth['value']}"
-            )
-        if output_res["unit"] == output_truth["unit"]:
-            logger.info(
-                f"same unit for result and groundtruth : "
-                f"{output_res['unit']} = {output_truth['unit']}"
-            )
-        else:
-            logger.warning(
-                f"different unit for result and groundtruth : "
-                f"{output_res['unit']} ≠ {output_truth['unit']}"
-            )
+    test_simulation_times = raw_simulation_times.copy()
+    results = []
 
-    logger.success("Evaluation of the normalisation results complete")
+    for model in MODEL:
+        logger.info(f"Evaluating {model}")
+
+        total_correct = 0
+        total_inference_times = []
+
+        for run in range(runs):
+            logger.info(f"Run {run + 1}/{runs}")
+            run_correct = 0
+
+            for raw_simulation_time in test_simulation_times:
+                normalisation_result = normalize_simulation_time(
+                    raw_simulation_time, model_name=model
+                )
+
+                if normalisation_result:
+                    normalized_result_json, inference_time = normalisation_result
+                    total_inference_times.append(inference_time)
+
+                    normalized_data = json.loads(normalized_result_json)
+                    ground_truth = ground_truth_dict[raw_simulation_time]
+
+                    match = True
+
+                    if len(normalized_data["output"]) != len(ground_truth):
+                        match = False
+                    else:
+                        for i in range(len(normalized_data["output"])):
+                            if (
+                                normalized_data["output"][i]["value"]
+                                != ground_truth[i]["value"]
+                            ):
+                                match = False
+                                break
+                            if (
+                                normalized_data["output"][i]["unit"]
+                                != ground_truth[i]["unit"]
+                            ):
+                                match = False
+                                break
+
+                    if match:
+                        run_correct += 1
+                else:
+                    total_inference_times.append(0)
+
+            logger.info(
+                f"run correct : {run_correct} length of the sample : {len(test_simulation_times)}"
+            )
+            run_accuracy = (run_correct / len(test_simulation_times)) * 100
+            logger.info(f"  Run accuracy: {run_accuracy:.1f}%")
+            total_correct += run_correct
+
+        accuracy = (total_correct / (len(test_simulation_times) * runs)) * 100
+        mean_time_ms = sum(total_inference_times) / len(total_inference_times)
+
+        results.append(
+            {
+                "model_name": model,
+                "accuracy_percentage": round(accuracy, 2),
+                "mean_inference_time_ms": round(mean_time_ms, 2),
+            }
+        )
+
+        logger.info(
+            f"\n {model} : Accuracy = {accuracy:.1f}%, mean Time = {mean_time_ms:.2f}ms"
+        )
+
+    tsv_file = Path("results/model_evaluation.tsv")
+    tsv_file.parent.mkdir(parents=True, exist_ok=True)
+
+    with open(tsv_file, "w") as f:
+        f.write("model_name\taccuracy_percentage\tmean_inference_time_second\n")
+        f.writelines(
+            f"{result['model_name']}\t{result['accuracy_percentage']}\t{result['mean_inference_time_ms']}\n"
+            for result in results
+        )
+
+    logger.success(f"\n Results succesfully saved to {tsv_file}")
 
 
 @click.command()
@@ -230,8 +291,24 @@ def evaluate_normalisation(ground_truth_file: Path, normalized_simulation_time: 
     type=click.Path(exists=True, file_okay=True, path_type=Path),
     help="Path to the groundtruth file",
 )
+@click.option(
+    "--runs",
+    default=10,
+    type=int,
+    help="Number of runs of the script",
+)
+@click.option(
+    "--model_name",
+    default="openai/gpt-4o",
+    type=str,
+    help="Model name to use for normalization",
+)
 def main_normalizing_simulation_times(
-    raw_simu_times_file: Path, normalized_simulation_time: Path, ground_truth_file: Path
+    raw_simu_times_file: Path,
+    normalized_simulation_time: Path,
+    ground_truth_file: Path,
+    runs: int,
+    model_name: str,
 ):
     """Normalize the simulation times entities bu running all annexe functions."""
     times = load_simulation_times(raw_simu_times_file)
@@ -257,10 +334,12 @@ def main_normalizing_simulation_times(
         "0.5μs",
         "157 nanosecs",
     ]
-    normalisation_output = format_norm_simulation_time(example_simulation)
-    print(normalisation_output)
-    save_norm_simulation_results(normalisation_output, normalized_simulation_time)
-    evaluate_normalisation(ground_truth_file, normalized_simulation_time)
+    evaluate_all_models_and_save_tsv(example_simulation, ground_truth_file, runs)
+
+    # normalisation_output = format_norm_simulation_time(example_simulation, model_name)
+    # print(normalisation_output)
+    # save_norm_simulation_results(normalisation_output, normalized_simulation_time)
+    # evaluate_all_models_and_save_tsv(example_simulation, ground_truth_file, runs)
 
 
 if __name__ == "__main__":
