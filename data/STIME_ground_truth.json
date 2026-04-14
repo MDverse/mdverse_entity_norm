@@ -11,7 +11,7 @@
             },
                         {
                 "input" : "multi-microsecond",
-                "output" : [{"value" : "None", "unit" : "μs"}]
+                "output" : [{"value" : null, "unit" : "μs"}]
             },
                         {
                 "input" : "6microseconds",
