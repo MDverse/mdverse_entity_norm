@@ -59,6 +59,6 @@ The`non_grounded_molecules.tsv` file has two columns :
 To normalize simulation time entities, run :
 
 ```sh
-uv run src/mdverse_entity_norm/scripts/normalize_simulation_time.py --raw_simu_times_file data/STIME.txt --normalized_simulation_time results/normalized_simulation_time.json
+uv run src/mdverse_entity_norm/scripts/normalize_simulation_time.py --raw_simu_times_file data/STIME.txt --normalized_simulation_time results/norm_simu_times/normalized_simulation_time_gpt.json --ground_truth_file data/STIME_ground_truth.json
 ```
 > This command generates a file named `normalized_simulation_time.json` in the `results` directory, containing the normalized simulation time entities. The file is in JSON format, where each key is a simulation time entity and its corresponding value is the normalized simulation time value and time unit in the standard format. If a simulation time entity could not be normalized, its value will be `null`.
