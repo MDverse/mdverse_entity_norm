@@ -75,6 +75,10 @@
                        {
                 "input" : "157 nanosecs",
                 "output" : [{"value" : 157, "unit" : "ns"}]
+            },
+        {
+                "input" : "100 K",
+                "output" : [{"value" : 100, "unit" : null}]
             }
 
         ]
