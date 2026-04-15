@@ -177,6 +177,43 @@ def save_norm_simulation_results(
     logger.success("Saving results to JSON file successful")
 
 
+def normalize_all_entities(raw_simulation_times: list, model: str):
+    run_correct = 0
+    ground_truth_dict = {}
+
+    for raw_simulation_time in raw_simulation_times:
+        normalisation_result = normalize_simulation_time(
+            raw_simulation_time, model_name=model
+        )
+        if normalisation_result:
+            normalized_result_json = normalisation_result
+
+            normalized_data = json.loads(normalized_result_json)
+            ground_truth = ground_truth_dict[raw_simulation_time]
+
+            match = True
+
+            if len(normalized_data["output"]) != len(ground_truth):
+                match = False
+        else:
+            for i in range(len(normalized_data["output"])):
+                if normalized_data["output"][i]["value"] != ground_truth[i]["value"]:
+                    logger.info(f"{normalized_data['output'][i]['value']} ")
+                    match = False
+                    break
+                if normalized_data["output"][i]["unit"] != ground_truth[i]["unit"]:
+                    match = False
+                    break
+
+            if match:
+                run_correct += 1
+
+    logger.info(
+        f"run correct : {run_correct} length of the sample : {len(raw_simulation_times)}"
+    )
+    return run_correct
+
+
 def evaluate_all_models_and_save_tsv(
     raw_simulation_times: list, ground_truth_file: Path, runs: int
 ):
@@ -188,88 +225,51 @@ def evaluate_all_models_and_save_tsv(
     for truth in ground_truth_data["groundtruth"]:
         ground_truth_dict[truth["input"]] = truth["output"]
 
-    test_simulation_times = raw_simulation_times.copy()
     results = []
 
     for model in MODEL:
         logger.info(f"Evaluating {model}")
 
         total_correct = 0
-        total_inference_times = []
 
         for run in range(runs):
             logger.info(f"Run {run + 1}/{runs}")
-            run_correct = 0
 
-            for raw_simulation_time in test_simulation_times:
-                normalisation_result = normalize_simulation_time(
-                    raw_simulation_time, model_name=model
-                )
-
-                if normalisation_result:
-                    normalized_result_json, inference_time = normalisation_result
-                    total_inference_times.append(inference_time)
-
-                    normalized_data = json.loads(normalized_result_json)
-                    ground_truth = ground_truth_dict[raw_simulation_time]
-
-                    match = True
-
-                    if len(normalized_data["output"]) != len(ground_truth):
-                        match = False
-                    else:
-                        for i in range(len(normalized_data["output"])):
-                            if (
-                                normalized_data["output"][i]["value"]
-                                != ground_truth[i]["value"]
-                            ):
-                                match = False
-                                break
-                            if (
-                                normalized_data["output"][i]["unit"]
-                                != ground_truth[i]["unit"]
-                            ):
-                                match = False
-                                break
-
-                    if match:
-                        run_correct += 1
-                else:
-                    total_inference_times.append(0)
+            run_correct = normalize_all_entities(raw_simulation_times, model)
 
             logger.info(
-                f"run correct : {run_correct} length of the sample : {len(test_simulation_times)}"
+                f"run correct : {run_correct} length of the sample : {len(raw_simulation_times)}"
             )
-            run_accuracy = (run_correct / len(test_simulation_times)) * 100
+            run_accuracy = (run_correct / len(raw_simulation_times)) * 100
             logger.info(f"  Run accuracy: {run_accuracy:.1f}%")
             total_correct += run_correct
 
-        accuracy = (total_correct / (len(test_simulation_times) * runs)) * 100
-        mean_time_ms = sum(total_inference_times) / len(total_inference_times)
+        accuracy = (total_correct / (len(raw_simulation_times) * runs)) * 100
 
         results.append(
             {
                 "model_name": model,
                 "accuracy_percentage": round(accuracy, 2),
-                "mean_inference_time_ms": round(mean_time_ms, 2),
             }
         )
 
-        logger.info(
-            f"\n {model} : Accuracy = {accuracy:.1f}%, mean Time = {mean_time_ms:.2f}ms"
-        )
+        logger.info(f"\n {model} : Accuracy = {accuracy:.1f}%")
 
-    tsv_file = Path("results/model_evaluation.tsv")
-    tsv_file.parent.mkdir(parents=True, exist_ok=True)
 
-    with open(tsv_file, "w") as f:
-        f.write("model_name\taccuracy_percentage\tmean_inference_time_second\n")
-        f.writelines(
-            f"{result['model_name']}\t{result['accuracy_percentage']}\t{result['mean_inference_time_ms']}\n"
-            for result in results
-        )
-
-    logger.success(f"\n Results succesfully saved to {tsv_file}")
+def save_evaluation_results_in_tsv(
+    model_evaluation_file: Path,
+    raw_simulation_times: list,
+    ground_truth_file: Path,
+    runs: int,
+):
+    results = evaluate_all_models_and_save_tsv(
+        raw_simulation_times, ground_truth_file, runs
+    )
+    with open(model_evaluation_file, "w") as f:
+        f.write("model_name\taccuracy_percentage\n")
+        for result in results:
+            f.writelines(f"{result['model_name']}\t{result['accuracy_percentage']}'\n")
+    logger.success(f"\n Results succesfully saved to {model_evaluation_file}")
 
 
 @click.command()
@@ -297,22 +297,15 @@ def evaluate_all_models_and_save_tsv(
     type=int,
     help="Number of runs of the script",
 )
-@click.option(
-    "--model_name",
-    default="openai/gpt-4o",
-    type=str,
-    help="Model name to use for normalization",
-)
 def main_normalizing_simulation_times(
     raw_simu_times_file: Path,
     normalized_simulation_time: Path,
     ground_truth_file: Path,
     runs: int,
-    model_name: str,
 ):
     """Normalize the simulation times entities bu running all annexe functions."""
     times = load_simulation_times(raw_simu_times_file)
-    times = times[:5]
+    times = times[:]
     example_simulation = [
         "10ns",
         "one hundred nanosecond",
@@ -334,12 +327,11 @@ def main_normalizing_simulation_times(
         "0.5μs",
         "157 nanosecs",
     ]
-    evaluate_all_models_and_save_tsv(example_simulation, ground_truth_file, runs)
+    evaluate_all_models_and_save_tsv(times, ground_truth_file, runs)
 
-    # normalisation_output = format_norm_simulation_time(example_simulation, model_name)
+    # normalisation_output = format_norm_simulation_time(times, model_name)
     # print(normalisation_output)
     # save_norm_simulation_results(normalisation_output, normalized_simulation_time)
-    # evaluate_all_models_and_save_tsv(example_simulation, ground_truth_file, runs)
 
 
 if __name__ == "__main__":
