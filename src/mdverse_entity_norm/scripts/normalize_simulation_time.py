@@ -158,7 +158,7 @@ def format_norm_simulation_time(raw_simulation_time: list, model_name: str) -> d
             all_simulation_times_norm.append(simulation_time_normalized)
         else:
             simulation_time_not_normalized = {
-                "input": {simulation_time},
+                "input": simulation_time,
                 "output": normalization_result,
             }
             all_simulation_times_norm.append(simulation_time_not_normalized)
@@ -177,33 +177,43 @@ def save_norm_simulation_results(
     logger.success("Saving results to JSON file successful")
 
 
-def normalize_all_entities(raw_simulation_times: list, model: str):
+def normalize_all_entities(
+    raw_simulation_times: list,
+    model: str,
+    ground_truth_dict: dict,
+) -> int:
     run_correct = 0
-    ground_truth_dict = {}
 
     for raw_simulation_time in raw_simulation_times:
         normalisation_result = normalize_simulation_time(
             raw_simulation_time, model_name=model
         )
         if normalisation_result:
-            normalized_result_json = normalisation_result
+            normalized_result_json = normalisation_result[0]
 
             normalized_data = json.loads(normalized_result_json)
-            ground_truth = ground_truth_dict[raw_simulation_time]
+            ground_truth = ground_truth_dict.get(raw_simulation_time)
+
+            if ground_truth is None:
+                logger.warning(f"No ground truth found for: {raw_simulation_time}")
+                continue
 
             match = True
 
             if len(normalized_data["output"]) != len(ground_truth):
                 match = False
-        else:
-            for i in range(len(normalized_data["output"])):
-                if normalized_data["output"][i]["value"] != ground_truth[i]["value"]:
-                    logger.info(f"{normalized_data['output'][i]['value']} ")
-                    match = False
-                    break
-                if normalized_data["output"][i]["unit"] != ground_truth[i]["unit"]:
-                    match = False
-                    break
+            else:
+                for i in range(len(normalized_data["output"])):
+                    if (
+                        normalized_data["output"][i]["value"]
+                        != ground_truth[i]["value"]
+                    ):
+                        logger.info(f"{normalized_data['output'][i]['value']} ")
+                        match = False
+                        break
+                    if normalized_data["output"][i]["unit"] != ground_truth[i]["unit"]:
+                        match = False
+                        break
 
             if match:
                 run_correct += 1
@@ -214,9 +224,7 @@ def normalize_all_entities(raw_simulation_times: list, model: str):
     return run_correct
 
 
-def evaluate_all_models_and_save_tsv(
-    raw_simulation_times: list, ground_truth_file: Path, runs: int
-):
+def evaluate_all_models(raw_simulation_times: list, ground_truth_file: Path, runs: int):
     """Evaluate all models and save results to TSV file."""
     with open(ground_truth_file) as f:
         ground_truth_data = json.load(f)
@@ -235,7 +243,9 @@ def evaluate_all_models_and_save_tsv(
         for run in range(runs):
             logger.info(f"Run {run + 1}/{runs}")
 
-            run_correct = normalize_all_entities(raw_simulation_times, model)
+            run_correct = normalize_all_entities(
+                raw_simulation_times, model, ground_truth_dict
+            )
 
             logger.info(
                 f"run correct : {run_correct} length of the sample : {len(raw_simulation_times)}"
@@ -255,6 +265,8 @@ def evaluate_all_models_and_save_tsv(
 
         logger.info(f"\n {model} : Accuracy = {accuracy:.1f}%")
 
+    return results
+
 
 def save_evaluation_results_in_tsv(
     model_evaluation_file: Path,
@@ -262,21 +274,20 @@ def save_evaluation_results_in_tsv(
     ground_truth_file: Path,
     runs: int,
 ):
-    results = evaluate_all_models_and_save_tsv(
-        raw_simulation_times, ground_truth_file, runs
-    )
+    results = evaluate_all_models(raw_simulation_times, ground_truth_file, runs)
     with open(model_evaluation_file, "w") as f:
         f.write("model_name\taccuracy_percentage\n")
-        for result in results:
-            f.writelines(f"{result['model_name']}\t{result['accuracy_percentage']}'\n")
-    logger.success(f"\n Results succesfully saved to {model_evaluation_file}")
+        f.writelines(
+            f"{result['model_name']}\t{result['accuracy_percentage']}\n"
+            for result in results
+        )
 
 
 @click.command()
 @click.option(
     "--normalized_simulation_time",
     default="results/normalized_simulation_time_gpt.json",
-    type=click.Path(exists=True, file_okay=True, path_type=Path),
+    type=click.Path(file_okay=True, path_type=Path),
     help="Path to the JSON output file containing the normalized simulation times",
 )
 @click.option(
@@ -297,41 +308,25 @@ def save_evaluation_results_in_tsv(
     type=int,
     help="Number of runs of the script",
 )
+@click.option(
+    "--model_evaluation_file",
+    default="results/norm_simu_times/model_evaluation.tsv",
+    type=click.Path(file_okay=True, path_type=Path),
+    help="Path to the TSV file for model evaluation results",
+)
 def main_normalizing_simulation_times(
     raw_simu_times_file: Path,
     normalized_simulation_time: Path,
     ground_truth_file: Path,
     runs: int,
+    model_evaluation_file: Path,
 ):
     """Normalize the simulation times entities bu running all annexe functions."""
     times = load_simulation_times(raw_simu_times_file)
     times = times[:]
-    example_simulation = [
-        "10ns",
-        "one hundred nanosecond",
-        "multi-microsecond",
-        "6microseconds",
-        "100–200 ns",
-        "1.5 micro-sec",
-        "5-microsecond",
-        "8 microseconds",
-        "0.633 us",
-        "1069 ns",
-        "1.6 ns",
-        "4-microsecond",
-        "500 ps",
-        "200 to 300 ns",
-        "300 nanoseconds",
-        "700ns",
-        "3 μs",
-        "0.5μs",
-        "157 nanosecs",
-    ]
-    evaluate_all_models_and_save_tsv(times, ground_truth_file, runs)
-
-    # normalisation_output = format_norm_simulation_time(times, model_name)
-    # print(normalisation_output)
-    # save_norm_simulation_results(normalisation_output, normalized_simulation_time)
+    save_evaluation_results_in_tsv(
+        model_evaluation_file, times, ground_truth_file, runs
+    )
 
 
 if __name__ == "__main__":
