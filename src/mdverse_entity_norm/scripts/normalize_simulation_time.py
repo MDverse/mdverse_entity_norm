@@ -182,6 +182,21 @@ def normalize_all_entities(
     model: str,
     ground_truth_dict: dict,
 ) -> int:
+    """
+    Normalize all the simulation times.
+
+    Parameters
+    ----------
+    raw_simulation_times (list): A list of raw simulation time strings to be normalized.
+    model (str): The name of the model to be used for normalization.
+    ground_truth_dict (dict): A dictionary mapping raw simulation time strings to their
+    corresponding ground truth normalized values.
+
+    Returns
+    -------
+    int: The number of correctly normalized simulation times compared to the ground
+    truth.
+    """
     run_correct = 0
 
     for raw_simulation_time in raw_simulation_times:
@@ -225,7 +240,20 @@ def normalize_all_entities(
 
 
 def evaluate_all_models(raw_simulation_times: list, ground_truth_file: Path, runs: int):
-    """Evaluate all models and save results to TSV file."""
+    """Evaluate all models and save results to TSV file.
+
+    Parameters
+    ----------
+    raw_simulation_times (list): A list of raw simulation time strings to be normalized.
+    ground_truth_file (Path): Path to the ground truth JSON file containing the correct
+    normalized values for the simulation times.
+    runs (int): The number of runs to perform for each model to calculate average accuracy.
+
+    Returns
+    -------
+    list[dict]: A list of dictionaries containing the model names and their corresponding
+    accuracy percentages.
+    """
     with open(ground_truth_file) as f:
         ground_truth_data = json.load(f)
 
@@ -274,6 +302,16 @@ def save_evaluation_results_in_tsv(
     ground_truth_file: Path,
     runs: int,
 ):
+    """Save the evaluation results of all models in a TSV file.
+
+    Parameters
+    ----------
+    model_evaluation_file (Path): Path to the TSV file for model evaluation results.
+    raw_simulation_times (list): A list of raw simulation time strings to be normalized.
+    ground_truth_file (Path): Path to the ground truth JSON file containing the correct
+    normalized values for the simulation times.
+    runs (int): The number of runs to perform for each model to calculate average accuracy.
+    """
     results = evaluate_all_models(raw_simulation_times, ground_truth_file, runs)
     with open(model_evaluation_file, "w") as f:
         f.write("model_name\taccuracy_percentage\n")
