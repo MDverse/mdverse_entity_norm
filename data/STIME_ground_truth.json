@@ -1,86 +1,804 @@
 {
-    "groundtruth" :
-        [
-            {
-                "input" : "10ns",
-                "output" : [{"value" : 10, "unit" : "ns"}]
-            },
-                        {
-                "input" : "one hundred nanosecond",
-                "output" : [{"value" : 100, "unit" : "ns"}]
-            },
-                        {
-                "input" : "multi-microsecond",
-                "output" : [{"value" : null, "unit" : "μs"}]
-            },
-                        {
-                "input" : "6microseconds",
-                "output" : [{"value" : 6, "unit" : "μs"}]
-            },
-                        {
-                "input" : "100–200 ns",
-                "output" : [{"value" : 100, "unit" : "ns"},{"value" : 200, "unit" : "ns"}]
-            },
-                        {
-                "input" : "1.5 micro-sec",
-                "output" : [{"value" : 1.5, "unit" : "μs"}]
-            },
-                        {
-                "input" : "5-microsecond",
-                "output" : [{"value" : 5, "unit" : "μs"}]
-            },
-                        {
-                "input" : "8 microseconds",
-                "output" : [{"value" : 8, "unit" : "μs"}]
-            },                        {
-
-                "input" : "0.633 us",
-                "output" : [{"value" : 0.633, "unit" : "μs"}]
-            },                        {
-
-                "input" : "1069 ns",
-                "output" : [{"value" : 1069, "unit" : "ns"}]
-            },
-                        {
-                "input" : "1.6 ns",
-                "output" : [{"value" : 1.6, "unit" : "ns"}]
-            },
-                        {
-                "input" : "4-microsecond",
-                "output" : [{"value" : 4, "unit" : "μs"}]
-            },
-                        {
-                "input" : "500 ps",
-                "output" : [{"value" : 500, "unit" : "ps"}]
-            },
-                        {
-                "input" : "200 to 300 ns",
-                "output" : [{"value" : 200, "unit" : "ns"}, {"value" : 300, "unit" : "ns"}]
-            },           {
-                "input" : "300 nanoseconds",
-                "output" : [{"value" : 300, "unit" : "ns"}]
-            },
-                         {
-                "input" : "700ns",
-                "output" : [{"value" : 700, "unit" : "ns"}]
-            },
-                        {
-                "input" : "3 μs",
-                "output" : [{"value" : 3, "unit" : "μs"}]
-            },
-                        {
-                "input" : "0.5μs",
-                "output" : [{"value" : 0.5, "unit" : "μs"}]
-            },
-                       {
-                "input" : "157 nanosecs",
-                "output" : [{"value" : 157, "unit" : "ns"}]
-            },
+    "groundtruth": [
         {
-                "input" : "100 K",
-                "output" : [{"value" : 100, "unit" : null}]
-            }
-
-        ]
-
+            "input": "500ns",
+            "output": [
+                {
+                    "value": 500,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "100ns",
+            "output": [
+                {
+                    "value": 100,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "200 ns",
+            "output": [
+                {
+                    "value": 200,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "microsecond",
+            "output": [
+                {
+                    "value": null,
+                    "unit": "μs"
+                }
+            ]
+        },
+        {
+            "input": "500 ns",
+            "output": [
+                {
+                    "value": 500,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "1 microsecond",
+            "output": [
+                {
+                    "value": 1,
+                    "unit": "μs"
+                }
+            ]
+        },
+        {
+            "input": "200ns",
+            "output": [
+                {
+                    "value": 200,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "100 ns",
+            "output": [
+                {
+                    "value": 100,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "110 ns",
+            "output": [
+                {
+                    "value": 110,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "1500 ns",
+            "output": [
+                {
+                    "value": 1500,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "300 ns",
+            "output": [
+                {
+                    "value": 300,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "315.0 k",
+            "output": [
+                {
+                    "value": 315,
+                    "unit": null
+                }
+            ]
+        },
+        {
+            "input": "1 μs",
+            "output": [
+                {
+                    "value": 1,
+                    "unit": "μs"
+                }
+            ]
+        },
+        {
+            "input": "10 microseconds",
+            "output": [
+                {
+                    "value": 10,
+                    "unit": "μs"
+                }
+            ]
+        },
+        {
+            "input": "1000 ns",
+            "output": [
+                {
+                    "value": 1000,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "2 microseconds",
+            "output": [
+                {
+                    "value": 2,
+                    "unit": "μs"
+                }
+            ]
+        },
+        {
+            "input": "250 ns",
+            "output": [
+                {
+                    "value": 250,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "3.0 us",
+            "output": [
+                {
+                    "value": 3.0,
+                    "unit": "μs"
+                }
+            ]
+        },
+        {
+            "input": "317.0 k",
+            "output": [
+                {
+                    "value": 317.0,
+                    "unit": null
+                }
+            ]
+        },
+        {
+            "input": "319.1 k",
+            "output": [
+                {
+                    "value": 319.1,
+                    "unit": null
+                }
+            ]
+        },
+        {
+            "input": "5 μs",
+            "output": [
+                {
+                    "value": 5,
+                    "unit": "μs"
+                }
+            ]
+        },
+        {
+            "input": "50 ns",
+            "output": [
+                {
+                    "value": 50,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "550ns",
+            "output": [
+                {
+                    "value": 550,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "700ns",
+            "output": [
+                {
+                    "value": 700,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "us",
+            "output": [
+                {
+                    "value": null,
+                    "unit": "μs"
+                }
+            ]
+        },
+        {
+            "input": "0.5 μs",
+            "output": [
+                {
+                    "value": 0.5,
+                    "unit": "μs"
+                }
+            ]
+        },
+        {
+            "input": "0.6",
+            "output": [
+                {
+                    "value": 0.6,
+                    "unit": null
+                }
+            ]
+        },
+        {
+            "input": "0.633 us",
+            "output": [
+                {
+                    "value": 0.633,
+                    "unit": "μs"
+                }
+            ]
+        },
+        {
+            "input": "0.79 ns",
+            "output": [
+                {
+                    "value": 0.79,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "1 ns",
+            "output": [
+                {
+                    "value": 1,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "1 µs",
+            "output": [
+                {
+                    "value": 1,
+                    "unit": "μs"
+                }
+            ]
+        },
+        {
+            "input": "1.0 us",
+            "output": [
+                {
+                    "value": 1.0,
+                    "unit": "μs"
+                }
+            ]
+        },
+        {
+            "input": "1.5 micro-sec",
+            "output": [
+                {
+                    "value": 1.5,
+                    "unit": "μs"
+                }
+            ]
+        },
+        {
+            "input": "1.6 ns",
+            "output": [
+                {
+                    "value": 1.6,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "1.6 μs",
+            "output": [
+                {
+                    "value": 1.6,
+                    "unit": "μs"
+                }
+            ]
+        },
+        {
+            "input": "10 ns",
+            "output": [
+                {
+                    "value": 10,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "10 µs",
+            "output": [
+                {
+                    "value": 10,
+                    "unit": "μs"
+                }
+            ]
+        },
+        {
+            "input": "10 μs",
+            "output": [
+                {
+                    "value": 10,
+                    "unit": "μs"
+                }
+            ]
+        },
+        {
+            "input": "100",
+            "output": [
+                {
+                    "value": 100,
+                    "unit": null
+                }
+            ]
+        },
+        {
+            "input": "100 nanoseconds",
+            "output": [
+                {
+                    "value": 100,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "100–200 ns",
+            "output": [
+                {
+                    "value": 100,
+                    "unit": "ns"
+                },
+                {
+                    "value": 200,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "1069 ns",
+            "output": [
+                {
+                    "value": 1069,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "1080 ns",
+            "output": [
+                {
+                    "value": 1080,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "11 ns",
+            "output": [
+                {
+                    "value": 11,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "12 μs",
+            "output": [
+                {
+                    "value": 12,
+                    "unit": "μs"
+                }
+            ]
+        },
+        {
+            "input": "120ns",
+            "output": [
+                {
+                    "value": 120,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "125 ns",
+            "output": [
+                {
+                    "value": 125,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "167ns",
+            "output": [
+                {
+                    "value": 167,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "190 ns",
+            "output": [
+                {
+                    "value": 190,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "20",
+            "output": [
+                {
+                    "value": 20,
+                    "unit": null
+                }
+            ]
+        },
+        {
+            "input": "20 ns",
+            "output": [
+                {
+                    "value": 20,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "200-300ns",
+            "output": [
+                {
+                    "value": 200,
+                    "unit": "ns"
+                },
+                {
+                    "value": 300,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "27ns",
+            "output": [
+                {
+                    "value": 27,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "298k",
+            "output": [
+                {
+                    "value": 298,
+                    "unit": null
+                }
+            ]
+        },
+        {
+            "input": "3 μs",
+            "output": [
+                {
+                    "value": 3,
+                    "unit": "μs"
+                }
+            ]
+        },
+        {
+            "input": "30 ns",
+            "output": [
+                {
+                    "value": 30,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "300 k",
+            "output": [
+                {
+                    "value": 300,
+                    "unit": null
+                }
+            ]
+        },
+        {
+            "input": "300 nanoseconds",
+            "output": [
+                {
+                    "value": 300,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "3000 ns",
+            "output": [
+                {
+                    "value": 3000,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "300ns",
+            "output": [
+                {
+                    "value": 300,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "316.7 k",
+            "output": [
+                {
+                    "value": 316.7,
+                    "unit": null
+                }
+            ]
+        },
+        {
+            "input": "318.4 k",
+            "output": [
+                {
+                    "value": 318.4,
+                    "unit": null
+                }
+            ]
+        },
+        {
+            "input": "320.1 k",
+            "output": [
+                {
+                    "value": 320.1,
+                    "unit": null
+                }
+            ]
+        },
+        {
+            "input": "321.8 k",
+            "output": [
+                {
+                    "value": 320.1,
+                    "unit": null
+                }
+            ]
+        },
+        {
+            "input": "36 μs",
+            "output": [
+                {
+                    "value": 36,
+                    "unit": "μs"
+                }
+            ]
+        },
+        {
+            "input": "360 ns",
+            "output": [
+                {
+                    "value": 360,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "370 ns",
+            "output": [
+                {
+                    "value": 370,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "380 ns",
+            "output": [
+                {
+                    "value": 380,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "4.1 us",
+            "output": [
+                {
+                    "value": 4.1,
+                    "unit": "μs"
+                }
+            ]
+        },
+        {
+            "input": "40 ns",
+            "output": [
+                {
+                    "value": 40,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "40ns",
+            "output": [
+                {
+                    "value": 40,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "4200 ns",
+            "output": [
+                {
+                    "value": 4200,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "450 ns",
+            "output": [
+                {
+                    "value": 450,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "5-microsecond",
+            "output": [
+                {
+                    "value": 5,
+                    "unit": "μs"
+                }
+            ]
+        },
+        {
+            "input": "500 ps",
+            "output": [
+                {
+                    "value": 500,
+                    "unit": "ps"
+                }
+            ]
+        },
+        {
+            "input": "5000 ns",
+            "output": [
+                {
+                    "value": 5000,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "500ps",
+            "output": [
+                {
+                    "value": 500,
+                    "unit": "ps"
+                }
+            ]
+        },
+        {
+            "input": "50ns",
+            "output": [
+                {
+                    "value": 50,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "600 ns",
+            "output": [
+                {
+                    "value": 600,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "60ns",
+            "output": [
+                {
+                    "value": 60,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "6microseconds",
+            "output": [
+                {
+                    "value": 6,
+                    "unit": "μs"
+                }
+            ]
+        },
+        {
+            "input": "6µs",
+            "output": [
+                {
+                    "value": 6,
+                    "unit": "μs"
+                }
+            ]
+        },
+        {
+            "input": "8 microseconds",
+            "output": [
+                {
+                    "value": 8,
+                    "unit": "μs"
+                }
+            ]
+        },
+        {
+            "input": "800 ns",
+            "output": [
+                {
+                    "value": 800,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "87 microsecond",
+            "output": [
+                {
+                    "value": 87,
+                    "unit": "μs"
+                }
+            ]
+        },
+        {
+            "input": "multi-microsecond",
+            "output": [
+                {
+                    "value": null,
+                    "unit": "μs"
+                }
+            ]
+        },
+        {
+            "input": "nanosecond",
+            "output": [
+                {
+                    "value": null,
+                    "unit": "ns"
+                }
+            ]
+        },
+        {
+            "input": "one hundred nanosecond",
+            "output": [
+                {
+                    "value": 100,
+                    "unit": "ns"
+                }
+            ]
+        }
+    ]
 }
