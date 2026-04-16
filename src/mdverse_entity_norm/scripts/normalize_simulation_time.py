@@ -100,37 +100,39 @@ def normalize_simulation_time(raw_simulation_time: str, model_name: str):
 
     logger.info(f"Normalisation of {raw_simulation_time}...")
 
-    start_time = time.time()
     try:
-        completion = client.chat.completions.create(
-            model=model_name,
-            max_retries=3,
-            response_model=NormSimuTime,
-            messages=[
-                {
-                    "role": "system",
-                    "content": f"{PROMPT}",
-                },
-                {
-                    "role": "user",
-                    "content": f"{raw_simulation_time}",
-                },
-            ],
+        start_time = time.perf_counter()
+        completion_pydantic, completion_basic = (
+            client.chat.completions.create_with_completion(
+                model=model_name,
+                max_retries=3,
+                response_model=NormSimuTime,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": f"{PROMPT}",
+                    },
+                    {
+                        "role": "user",
+                        "content": f"{raw_simulation_time}",
+                    },
+                ],
+            )
         )
     except InstructorRetryException as exc:
         logger.warning(f"Failed after {exc.n_attempts} attempts")
-        return None
+        return None, None
 
     except ValidationError as exc:
         logger.warning(f"Pydantic validation failed:  {exc}")
-        return None
+        return None, None
 
-    end_time = time.time()
-    inference_time = end_time - start_time
-    logger.info(f"Normalisation of simulation times complete in {inference_time}")
-    logger.info(completion)
+    elapsed_time = time.perf_counter() - start_time
+    logger.info(f"Normalisation of simulation times complete in {elapsed_time}")
+    logger.info(completion_pydantic)
     logger.success("Normalisation of the data was successful")
-    return completion.model_dump_json(), inference_time
+    cost = completion_basic.usage.cost_details["upstream_inference_cost"]
+    return completion_pydantic.model_dump_json(), elapsed_time, cost
 
 
 def format_norm_simulation_time(raw_simulation_time: list, model_name: str) -> dict:
@@ -181,7 +183,7 @@ def normalize_all_entities(
     raw_simulation_times: list,
     model: str,
     ground_truth_dict: dict,
-) -> int:
+) -> tuple[int, int, int]:
     """
     Normalize all the simulation times.
 
@@ -198,6 +200,8 @@ def normalize_all_entities(
     truth.
     """
     run_correct = 0
+    normalisation_time = 0
+    normalisation_cost = 0
 
     for raw_simulation_time in raw_simulation_times:
         normalisation_result = normalize_simulation_time(
@@ -205,6 +209,8 @@ def normalize_all_entities(
         )
         if normalisation_result:
             normalized_result_json = normalisation_result[0]
+            normalisation_time += normalisation_result[1]
+            normalisation_cost += normalisation_result[2]
 
             normalized_data = json.loads(normalized_result_json)
             ground_truth = ground_truth_dict.get(raw_simulation_time)
@@ -234,9 +240,9 @@ def normalize_all_entities(
                 run_correct += 1
 
     logger.info(
-        f"run correct : {run_correct} length of the sample : {len(raw_simulation_times)}"
+        f"run correct : {run_correct} length of the sample :{len(raw_simulation_times)}"
     )
-    return run_correct
+    return run_correct, normalisation_time, normalisation_cost
 
 
 def evaluate_all_models(raw_simulation_times: list, ground_truth_file: Path, runs: int):
@@ -247,12 +253,13 @@ def evaluate_all_models(raw_simulation_times: list, ground_truth_file: Path, run
     raw_simulation_times (list): A list of raw simulation time strings to be normalized.
     ground_truth_file (Path): Path to the ground truth JSON file containing the correct
     normalized values for the simulation times.
-    runs (int): The number of runs to perform for each model to calculate average accuracy.
+    runs (int): The number of runs to perform for each model to
+    calculate average accuracy.
 
     Returns
     -------
-    list[dict]: A list of dictionaries containing the model names and their corresponding
-    accuracy percentages.
+    list[dict]: A list of dictionaries containing the model names and their
+    corresponding accuracy percentages.
     """
     with open(ground_truth_file) as f:
         ground_truth_data = json.load(f)
@@ -267,31 +274,54 @@ def evaluate_all_models(raw_simulation_times: list, ground_truth_file: Path, run
         logger.info(f"Evaluating {model}")
 
         total_correct = 0
+        total_normalisation_time = 0
+        total_normalisation_cost = 0
 
         for run in range(runs):
             logger.info(f"Run {run + 1}/{runs}")
 
             run_correct = normalize_all_entities(
                 raw_simulation_times, model, ground_truth_dict
-            )
+            )[0]
+            normalisation_time = normalize_all_entities(
+                raw_simulation_times, model, ground_truth_dict
+            )[1]
+            normalisation_cost = normalize_all_entities(
+                raw_simulation_times, model, ground_truth_dict
+            )[2]
 
             logger.info(
-                f"run correct : {run_correct} length of the sample : {len(raw_simulation_times)}"
+                f"run correct : {run_correct} length of the sample :"
+                f"{len(raw_simulation_times)}"
             )
             run_accuracy = (run_correct / len(raw_simulation_times)) * 100
+
             logger.info(f"  Run accuracy: {run_accuracy:.1f}%")
             total_correct += run_correct
+            total_normalisation_time += normalisation_time
+            total_normalisation_cost += normalisation_cost
 
         accuracy = (total_correct / (len(raw_simulation_times) * runs)) * 100
+        normalisation_time_by_entity = total_normalisation_time / (
+            len(raw_simulation_times) * runs
+        )
+        normalisation_cost_by_entity = total_normalisation_cost / (
+            len(raw_simulation_times) * runs
+        )
 
         results.append(
             {
                 "model_name": model,
                 "accuracy_percentage": round(accuracy, 2),
+                "normalisation_time": round(normalisation_time_by_entity, 2),
+                "normalisation_cost": round(normalisation_cost_by_entity, 2),
             }
         )
 
-        logger.info(f"\n {model} : Accuracy = {accuracy:.1f}%")
+        logger.info(
+            f"\n {model} : Accuracy = {accuracy:.1f}% Time = {total_normalisation_time}"
+            f" Cost = {total_normalisation_cost}\n"
+        )
 
     return results
 
@@ -310,13 +340,16 @@ def save_evaluation_results_in_tsv(
     raw_simulation_times (list): A list of raw simulation time strings to be normalized.
     ground_truth_file (Path): Path to the ground truth JSON file containing the correct
     normalized values for the simulation times.
-    runs (int): The number of runs to perform for each model to calculate average accuracy.
+    runs (int): The number of runs to perform for each model to calculate the
+    average accuracy.
     """
     results = evaluate_all_models(raw_simulation_times, ground_truth_file, runs)
     with open(model_evaluation_file, "w") as f:
-        f.write("model_name\taccuracy_percentage\n")
+        f.write(
+            "model_name\taccuracy_percentage\tnormalisation_times_sec\tnormalisation_cost\n"
+        )
         f.writelines(
-            f"{result['model_name']}\t{result['accuracy_percentage']}\n"
+            f"{result['model_name']}\t{result['accuracy_percentage']}\t{result['normalisation_time']}\t{result['normalisation_cost']}\n"
             for result in results
         )
 
@@ -362,6 +395,8 @@ def main_normalizing_simulation_times(
     """Normalize the simulation times entities bu running all annexe functions."""
     times = load_simulation_times(raw_simu_times_file)
     times = times[:]
+    # normalisation_output = format_norm_simulation_time(times, model_name=MODEL[0])
+    # save_norm_simulation_results(normalisation_output, normalized_simulation_time)
     save_evaluation_results_in_tsv(
         model_evaluation_file, times, ground_truth_file, runs
     )
