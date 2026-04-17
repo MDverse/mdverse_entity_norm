@@ -118,7 +118,8 @@ def call_chebi(entity_name: str) -> dict:
     # If the request fails
     else:
         logger.warning(
-            f"Failed to ground `{entity_name}` in ChEBI database (HTTP {response.status_code})."
+            f"Failed to ground `{entity_name}`"
+            f" in ChEBI database (HTTP {response.status_code})."
         )
         return {
             "entity_name": entity_name,
@@ -166,7 +167,8 @@ def call_gilda(entity_name: str) -> dict:
         }
     else:
         logger.warning(
-            f"Failed to ground `{entity_name}` using Gilda -> No grounding results found."
+            f"Failed to ground `{entity_name}` using Gilda -> "
+            "No grounding results found."
         )
     return {"entity_name": entity_name, "error": "No groundng found", "API": "GILDA"}
 
@@ -193,7 +195,8 @@ def call_pdb(code_pdb: str) -> dict:
     # If request is successful (HTTP 200), print the response links
     if response.status_code == 200:
         logger.info(
-            f"From PDB {code_pdb}: for {code_pdb} -> Status HTTP : {response.status_code}"
+            f"From PDB {code_pdb}: for {code_pdb} ->"
+            f"Status HTTP : {response.status_code}"
             f"(The request succeeded`)"
         )
         results = response.json()
@@ -212,7 +215,8 @@ def call_pdb(code_pdb: str) -> dict:
         }
     else:
         logger.warning(
-            f"Failed to ground `{code_pdb}` in PDB database (HTTP {response.status_code})."
+            f"Failed to ground `{code_pdb}` "
+            f"in PDB database (HTTP {response.status_code})."
         )
         return {
             "entity_name": code_pdb,
@@ -240,7 +244,8 @@ def call_uniprot(code_uniprot: str) -> dict:
     # If request is successful (HTTP 200), print the response links
     if response.status_code == 200:
         logger.info(
-            f"from UniProt: for {code_uniprot} : -> Status HTTP : {response.status_code}"
+            f"from UniProt: for {code_uniprot} : ->"
+            f"Status HTTP : {response.status_code}"
             f"(The request succeeded`)"
         )
         results = response.json()
@@ -256,7 +261,8 @@ def call_uniprot(code_uniprot: str) -> dict:
 
     else:
         logger.warning(
-            f"Failed to ground `{code_uniprot}` in UNIPROT database (HTTP {response.status_code})."
+            f"Failed to ground `{code_uniprot}`"
+            f" in UNIPROT database (HTTP {response.status_code})."
         )
         return {
             "entity_name": code_uniprot,
@@ -286,7 +292,7 @@ def call_pubchem(entity_name: str) -> dict:
     )
     if response.status_code == 200:
         logger.debug(
-            f"from PubChem: for {entity_name} : -> Status HTTP : {response.status_code} "
+            f"from PubChem: for {entity_name} : -> Status HTTP : {response.status_code}"
             f"(The request succeeded)"
         )
         results = response.json()["PropertyTable"]["Properties"][0]
@@ -300,7 +306,8 @@ def call_pubchem(entity_name: str) -> dict:
         }
     else:
         logger.warning(
-            f"Failed to ground `{entity_name}` in Pubchem database (HTTP {response.status_code})."
+            f"Failed to ground `{entity_name}`"
+            f" in Pubchem database (HTTP {response.status_code})."
         )
         return {
             "entity_name": entity_name,
@@ -491,15 +498,7 @@ def save_found_results_into_tsv(
     type=click.Path(file_okay=True, path_type=Path),
     help="Path to the output file for grounded results",
 )
-@click.option(
-    "--non_grounded_mol_filepath",
-    default="results/non_grounded_molecules.tsv",
-    type=click.Path(file_okay=True, path_type=Path),
-    help="Path to the output file for non-grounded results",
-)
-def ground_molecules(
-    mol_filepath: Path, grounded_mol_filepath: Path, non_grounded_mol_filepath: Path
-) -> None:
+def ground_molecules(mol_filepath: Path, grounded_mol_filepath: Path) -> None:
     """Ground all molecules in the input file and write results to output file."""
     # Load molecule enntities from txt file
     molecules = load_molecule(mol_filepath)
