@@ -27,7 +27,7 @@ class SimulationTime(BaseModel):
     value: float | None = Field(
         ..., description="Normalized value ofthe simulation time"
     )
-    unit: Literal["ps", "ns", "μs", "ms", "s"] | None = Field(
+    unit: Literal["fs", "ps", "ns", "μs", "ms", "s"] | None = Field(
         ..., max_length=2, description="Normalized unit of the simulation time"
     )
 
