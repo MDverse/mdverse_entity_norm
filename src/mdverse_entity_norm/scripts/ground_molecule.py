@@ -450,8 +450,8 @@ def save_found_results_into_tsv(
             [
                 "MOL",
                 "MOL_TYPE",
-                "MOL_ID",
                 "ERRORS",
+                "MOL_ID",
                 "MOL_SCORE",
                 "MOL_FULL_NAME",
                 "NB_results",
