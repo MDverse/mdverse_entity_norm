@@ -288,7 +288,7 @@ def call_pubchem(entity_name: str) -> dict:
     # - molecular_formula : The molecular formula of the entity
     response = httpx.get(
         f"{API_PUBCHEM}/compound/name/{entity_name}/property/IUPACName,MolecularFormula/JSON",
-        timeout=10,
+        timeout=30,
     )
     if response.status_code == 200:
         logger.debug(
@@ -364,19 +364,17 @@ def ground_whole_molecule(molecule: str):
         results_found.append(result)
     else:
         logger.info(f"Trying to ground `{molecule}` using Gilda...")
-        results_not_found.append(result)
         result = call_gilda(molecule)
         if "error" not in result:
             results_found.append(result)
         else:
             logger.info(f"Trying to ground `{molecule}` using PubChem...")
-            results_not_found.append(result)
+
             result = call_pubchem(molecule)
             if "error" not in result:
                 results_found.append(result)
             else:
                 logger.info(f"Trying to classify `{molecule}` as a sequence...")
-                results_not_found.append(result)
                 result = call_sequence(molecule)
                 if "error" in result:
                     results_not_found.append(result)
