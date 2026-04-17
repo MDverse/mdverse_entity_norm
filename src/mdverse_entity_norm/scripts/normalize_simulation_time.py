@@ -305,16 +305,13 @@ def evaluate_all_models(raw_simulation_times: list, ground_truth_file: Path, run
         normalisation_time_by_entity = total_normalisation_time / (
             len(raw_simulation_times) * runs
         )
-        normalisation_cost_by_entity = total_normalisation_cost / (
-            len(raw_simulation_times) * runs
-        )
 
         results.append(
             {
                 "model_name": model,
                 "accuracy_percentage": round(accuracy, 2),
                 "normalisation_time": round(normalisation_time_by_entity, 2),
-                "normalisation_cost": round(normalisation_cost_by_entity, 2),
+                "normalisation_cost": round(total_normalisation_cost, 2),
             }
         )
 
