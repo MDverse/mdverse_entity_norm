@@ -428,7 +428,9 @@ def grouding_mol(molecules: list[str]) -> tuple[list[dict], list[dict]]:
 
 
 def save_found_results_into_tsv(
-    grounding_results: list[dict], output_file: Path
+    grounding_results: list[dict],
+    non_grounded_results: list[dict],
+    output_file: Path,
 ) -> None:
     """Save grounding results into a TSV file.
 
@@ -444,6 +446,7 @@ def save_found_results_into_tsv(
                 "MOL",
                 "MOL_TYPE",
                 "MOL_ID",
+                "ERRORS",
                 "MOL_SCORE",
                 "MOL_FULL_NAME",
                 "NB_results",
@@ -454,39 +457,23 @@ def save_found_results_into_tsv(
                 [
                     result.get("entity_name", "Not Available"),
                     result.get("database", "Not Available"),
+                    result.get("error", "No errors"),
                     result.get("id", "Not Available"),
                     result.get("score", "Not Available"),
                     result.get("name", "Not Available"),
                     result.get("nb_res", "Not Available"),
                 ]
             )
-
-
-def save_not_found_results_into_tsv(
-    grounding_results: list[dict], output_file: Path
-) -> None:
-    """Save grounding results into a TSV file.
-
-    Parameters
-    ----------
-    grounding_results (list[dict]): List of dictionaries containing grounding results
-    output_file (str): Path to the output TSV file to save the results
-    """
-    with open(output_file, "w", newline="") as grounded_molecule_file:
-        writer = csv.writer(grounded_molecule_file, delimiter="\t")
-        writer.writerow(
-            [
-                "Entity_name",
-                "error",
-                "API",
-            ]
-        )
-        for result in grounding_results:
+        for result in non_grounded_results:
             writer.writerow(
                 [
                     result.get("entity_name", "Not Available"),
+                    result.get("database", "Unknown"),
                     result.get("error", "Not Available"),
-                    result.get("API", "Not Available"),
+                    result.get("id", "Not Available"),
+                    result.get("score", "Not Available"),
+                    result.get("name", "Not Available"),
+                    result.get("nb_res", "Not Available"),
                 ]
             )
 
@@ -520,8 +507,7 @@ def ground_molecules(
     molecules = molecules[:]
     # Grounding the molecule
     grounded_mols, not_grounded_mols = grouding_mol(molecules)
-    save_found_results_into_tsv(grounded_mols, grounded_mol_filepath)
-    save_not_found_results_into_tsv(not_grounded_mols, non_grounded_mol_filepath)
+    save_found_results_into_tsv(grounded_mols, not_grounded_mols, grounded_mol_filepath)
 
 
 if __name__ == "__main__":
