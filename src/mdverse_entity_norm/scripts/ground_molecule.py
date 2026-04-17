@@ -441,12 +441,12 @@ def save_found_results_into_tsv(
         writer = csv.writer(grounded_molecule_file, delimiter="\t")
         writer.writerow(
             [
-                "Entity_name",
-                "Database",
-                "ID",
-                "Score",
-                "Name",
-                "nb_res",
+                "MOL",
+                "MOL_TYPE",
+                "MOL_ID",
+                "MOL_SCORE",
+                "MOL_FULL_NAME",
+                "NB_results",
             ]
         )
         for result in grounding_results:
