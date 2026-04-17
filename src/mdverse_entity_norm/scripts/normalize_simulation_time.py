@@ -119,13 +119,16 @@ def normalize_simulation_time(raw_simulation_time: str, model_name: str):
                 ],
             )
         )
+        total_cost = completion_basic.usage.cost_details["upstream_inference_cost"]
     except InstructorRetryException as exc:
         logger.warning(f"Failed after {exc.n_attempts} attempts")
-        return None, None
+        elapsed_time = time.perf_counter() - start_time
+        return None, elapsed_time, total_cost
 
     except ValidationError as exc:
         logger.warning(f"Pydantic validation failed:  {exc}")
-        return None, None
+        elapsed_time = time.perf_counter() - start_time
+        return None, elapsed_time, total_cost
 
     elapsed_time = time.perf_counter() - start_time
     logger.info(f"Normalisation of simulation times complete in {elapsed_time}")
