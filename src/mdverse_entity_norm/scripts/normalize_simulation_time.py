@@ -119,16 +119,16 @@ def normalize_simulation_time(raw_simulation_time: str, model_name: str):
                 ],
             )
         )
-        total_cost = completion_basic.usage.cost_details["upstream_inference_cost"]
+    # total_cost = completion_basic.usage.cost_details["upstream_inference_cost"]
     except InstructorRetryException as exc:
         logger.warning(f"Failed after {exc.n_attempts} attempts")
         elapsed_time = time.perf_counter() - start_time
-        return None, elapsed_time, total_cost
+        return None, elapsed_time, None
 
     except ValidationError as exc:
         logger.warning(f"Pydantic validation failed:  {exc}")
         elapsed_time = time.perf_counter() - start_time
-        return None, elapsed_time, total_cost
+        return None, elapsed_time, None
 
     elapsed_time = time.perf_counter() - start_time
     logger.info(f"Normalisation of simulation times complete in {elapsed_time}")
@@ -213,7 +213,8 @@ def normalize_all_entities(
         if normalisation_result:
             normalized_result_json = normalisation_result[0]
             normalisation_time += normalisation_result[1]
-            normalisation_cost += normalisation_result[2]
+            if normalisation_result[2]:
+                normalisation_cost += normalisation_result[2]
 
             normalized_data = json.loads(normalized_result_json)
             ground_truth = ground_truth_dict.get(raw_simulation_time)
@@ -308,13 +309,16 @@ def evaluate_all_models(raw_simulation_times: list, ground_truth_file: Path, run
         normalisation_time_by_entity = total_normalisation_time / (
             len(raw_simulation_times) * runs
         )
+        normalisation_cost_by_entity = total_normalisation_cost / (
+            len(raw_simulation_times) * runs
+        )
 
         results.append(
             {
                 "model_name": model,
                 "accuracy_percentage": round(accuracy, 2),
                 "normalisation_time": round(normalisation_time_by_entity, 2),
-                "normalisation_cost": round(total_normalisation_cost, 2),
+                "normalisation_cost": round(normalisation_cost_by_entity, 2),
             }
         )
 
