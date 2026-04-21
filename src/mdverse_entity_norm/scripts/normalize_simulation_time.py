@@ -18,7 +18,12 @@ from pydantic import BaseModel, Field
 
 load_dotenv()
 
-MODEL = ["openai/gpt-4o", "deepseek/deepseek-v3.2", "google/gemma-4-31b-it"]
+MODEL = [
+    "openai/gpt-4o",
+    "deepseek/deepseek-v3.2",
+    "google/gemma-4-31b-it",
+    "qwen/qwen3.5-122b-a10b",
+]
 
 
 class SimulationTime(BaseModel):
@@ -211,8 +216,10 @@ def normalize_all_entities(
             raw_simulation_time, model_name=model
         )
         if normalisation_result:
-            normalized_result_json = normalisation_result[0]
-            normalisation_time += normalisation_result[1]
+            if normalisation_result[0]:
+                normalized_result_json = normalisation_result[0]
+            if normalisation_result[1]:
+                normalisation_time += normalisation_result[1]
             if normalisation_result[2]:
                 normalisation_cost += normalisation_result[2]
 
