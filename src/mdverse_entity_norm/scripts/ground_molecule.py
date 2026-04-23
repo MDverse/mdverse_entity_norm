@@ -67,13 +67,12 @@ def get_type(entry: str) -> str | None:
     ):
         return "UNIPROT"
     # DNA sequence pattern (only a, t, c, g)
-    if re.search(r"^5'-[atcg]+-3'$", entry) is not None:
+    if re.search(r"^5’-[atcg]+-3’$", entry) is not None:
         return "DNA"
     # RNA sequence pattern
-    if re.search(r"^5'-[aucg]+-3'$", entry) is not None:
+    if re.search(r"^5’-[aucg]+-3’$", entry) is not None:
         return "RNA"
     # # Amino acid sequence pattern
-    # [WIP : need another logic to avoid grounding Chebi entities as proteins]
     if (
         re.search(r"^(?!^[agct]+$)[acdefghiklmnpqrstvwy]+$", entry) is not None
         and len(entry) > 4
@@ -288,7 +287,7 @@ def call_pubchem(entity_name: str) -> dict:
     # - molecular_formula : The molecular formula of the entity
     response = httpx.get(
         f"{API_PUBCHEM}/compound/name/{entity_name}/property/IUPACName,MolecularFormula/JSON",
-        timeout=30,
+        timeout=60,
     )
     if response.status_code == 200:
         logger.debug(
@@ -330,6 +329,12 @@ def call_sequence(entity_name: str) -> dict:
     logger.info(f"Classifying sequence `{entity_name}`...")
     entity_type = get_type(entity_name)
     if entity_type == "PROTEIN":
+        logger.success(f"Sequence `{entity_name}` classified as {entity_type}.")
+        return {"entity_name": entity_name, "database": entity_type}
+    if entity_type == "DNA":
+        logger.success(f"Sequence `{entity_name}` classified as {entity_type}.")
+        return {"entity_name": entity_name, "database": entity_type}
+    if entity_type == "RNA":
         logger.success(f"Sequence `{entity_name}` classified as {entity_type}.")
         return {"entity_name": entity_name, "database": entity_type}
     else:
