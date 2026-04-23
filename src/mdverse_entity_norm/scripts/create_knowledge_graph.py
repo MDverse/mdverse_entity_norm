@@ -269,6 +269,14 @@ def print_graph_stats(knowledge_graph: nx.Graph) -> None:
 def main_create_knoledge_graphes(
     extracted_entities_path, grounded_molecules_path, number_of_datasets
 ):
+    """Create and save the knowledge graphes, display the graphe statistics.
+
+    Parameters
+    ----------
+    extracted_entities_path(Path): path to the extracted entities
+    grounded_molecules_path(Path): path to the grounded molecules file
+    number_of_dataset(int): number of dataset in the graph
+    """
     entity_file = get_extracted_entities(extracted_entities_path, number_of_datasets)
     entity_relationship = create_entities_relationship(entity_file)
     all_entities = format_all_entities(entity_relationship)
