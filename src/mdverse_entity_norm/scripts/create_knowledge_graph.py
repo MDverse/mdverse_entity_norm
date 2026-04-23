@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+import click
 import matplotlib.pyplot as plt
 import networkx as nx
 import pandas as pd
@@ -246,24 +247,40 @@ def print_graph_stats(knowledge_graph: nx.Graph) -> None:
     print(f"Number of disjoint subgraphs: {num_components}")
 
 
-if __name__ == "__main__":
-    entities_path = Path("data/entities.tsv")
-    grounded_molecules_path = Path("results/ground_molecule/grounded_molecules.tsv")
-
-    entity_file = get_extracted_entities(entities_path, number_of_datasets=10)
+@click.command()
+@click.option(
+    "--extracted_entities_path",
+    default="data/entities.tsv",
+    type=click.Path(file_okay=True, path_type=Path),
+    help="Path to the tsv output file containing the extracted entities",
+)
+@click.option(
+    "--grounded_molecules_path",
+    default="results/ground_molecule/grounded_molecules.tsv",
+    type=click.Path(file_okay=True, path_type=Path),
+    help="Path to the tsv output file containing the grounfded entities",
+)
+@click.option(
+    "--number_of_datasets",
+    default=10,
+    type=int,
+    help="number of datasets in the graphe",
+)
+def main_create_knoledge_graphes(
+    extracted_entities_path, grounded_molecules_path, number_of_datasets
+):
+    entity_file = get_extracted_entities(extracted_entities_path, number_of_datasets)
     entity_relationship = create_entities_relationship(entity_file)
     all_entities = format_all_entities(entity_relationship)
     grounded_molecule, target = create_grounded_entities(
         grounded_molecules_path, entity_relationship
     )
-
     knowledge_graph = create_knowledge_graph(
         entity_relationship, all_entities, grounded_molecule, target, grounding=False
     )
     grounded_knowledge_graph = create_knowledge_graph(
         entity_relationship, all_entities, grounded_molecule, target, grounding=True
     )
-
     print("kowledge graph")
     print_graph_stats(knowledge_graph)
     print("grounded knowledge graph")
@@ -276,3 +293,7 @@ if __name__ == "__main__":
         grounded_knowledge_graph,
         output_path=Path("results/ground_molecule/knowledge_graph_grounded.png"),
     )
+
+
+if __name__ == "__main__":
+    main_create_knoledge_graphes()
