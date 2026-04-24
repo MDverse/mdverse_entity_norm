@@ -51,9 +51,10 @@ def get_type(entry: str) -> str | None:
     str | None : The entity type ("PDB", "UNIPROT", "DNA", "RNA").
                 Otherwise, return None for others.
     """
-    entry = entry.replace(
-        "`", "'"
-    )  # Replace backticks with single quotes for sequence patterns
+    entry = entry.replace("`", "'")
+    entry = entry.replace("’", "'")
+    logger.info(entry)
+    # Replace backticks with single quotes for sequence patterns
     # PDB codes are 4 characters starting with a number
     if re.search(r"^[1-9]([a-z]|[1-9]){3}$", entry) is not None:
         return "PDB"
@@ -67,10 +68,10 @@ def get_type(entry: str) -> str | None:
     ):
         return "UNIPROT"
     # DNA sequence pattern (only a, t, c, g)
-    if re.search(r"^5’-[atcg]+-3’$", entry) is not None:
+    if re.search(r"^5'-[atcg]+-3'$", entry) is not None:
         return "DNA"
     # RNA sequence pattern
-    if re.search(r"^5’-[aucg]+-3’$", entry) is not None:
+    if re.search(r"^5'-[aucg]+-3'$", entry) is not None:
         return "RNA"
     # # Amino acid sequence pattern
     if (
@@ -383,6 +384,8 @@ def ground_whole_molecule(molecule: str):
                 result = call_sequence(molecule)
                 if "error" in result:
                     results_not_found.append(result)
+                else:
+                    results_found.append(result)
     logger.success(
         f"Molecule grounding completed : found {len(results_found)} molecules"
     )
@@ -509,6 +512,7 @@ def ground_molecules(mol_filepath: Path, grounded_mol_filepath: Path) -> None:
     molecules = molecules[:]
     # Grounding the molecule
     grounded_mols, not_grounded_mols = grouding_mol(molecules)
+    logger.info(grounded_mols)
     save_found_results_into_tsv(grounded_mols, not_grounded_mols, grounded_mol_filepath)
 
 
