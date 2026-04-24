@@ -18,14 +18,13 @@ from pydantic import BaseModel, Field
 
 load_dotenv()
 
-MODEL = [
-    "openai/gpt-4o",
-    "deepseek/deepseek-v3.2",
-    "google/gemma-4-31b-it",
-    "qwen/qwen3.5-122b-a10b",
-    "minimax/minimax-m2.5",
-    "moonshotai/kimi-k2.6",
-]
+MODEL = ["openai/gpt-4o"]
+
+# "deepseek/deepseek-v3.2",
+# "google/gemma-4-31b-it",
+# "qwen/qwen3.5-122b-a10b",
+# "minimax/minimax-m2.5",
+# "moonshotai/kimi-k2.6",
 
 
 class SimulationTime(BaseModel):
@@ -215,7 +214,7 @@ def normalize_all_entities(
     normalisation_cost = 0
 
     for raw_simulation_time in raw_simulation_times:
-        logger.info(f"entity: {normalised_entity} / {len(raw_simulation_times) + 1}")
+        # logger.info(f"entity: {normalised_entity} / {len(raw_simulation_times) + 1}")
         normalisation_result = normalize_simulation_time(
             raw_simulation_time, model_name=model
         )
@@ -244,20 +243,25 @@ def normalize_all_entities(
                             normalized_data["output"][i]["value"]
                             != ground_truth[i]["value"]
                         ):
-                            logger.info(f"{normalized_data['output'][i]['value']} ")
+                            logger.error(
+                                f"Normalisation value failed : {normalized_data['output'][i]['value']} "
+                            )
                             match = False
                             break
                         if (
                             normalized_data["output"][i]["unit"]
                             != ground_truth[i]["unit"]
                         ):
+                            logger.error(
+                                f"Normalisation unit failed : {normalized_data['output'][i]['value']} "
+                            )
                             match = False
                             break
 
                 if match:
                     normalised_entity += 1
 
-    # logger.info(f"entity: {normalised_entity} / {len(raw_simulation_times)}")
+    logger.info(f"entity: {normalised_entity} / {len(raw_simulation_times)}")
     return normalised_entity, normalisation_time, normalisation_cost
 
 
