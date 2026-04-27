@@ -169,7 +169,19 @@ def create_knowledge_graph(
     return knowledge_graph
 
 
-def visualize_graph(knowledge_graph: nx.Graph, output_path: Path) -> None:
+def get_molecule_label(grounded_molecules_entities):
+    label_dict = {}
+    for molecule_name in grounded_molecules_entities:
+        if len(molecule_name) > 6:
+            label_dict[molecule_name] = molecule_name[:6] + "..."
+        else:
+            label_dict[molecule_name] = molecule_name
+    return label_dict
+
+
+def visualize_graph(
+    knowledge_graph: nx.Graph, extracted_molecules_entites: list, output_path: Path
+) -> None:
     """Draw the knowledge graph and save it to a file.
 
     Parameters
@@ -187,6 +199,9 @@ def visualize_graph(knowledge_graph: nx.Graph, output_path: Path) -> None:
         knowledge_graph.nodes[node].get("color", "skyblue")
         for node in knowledge_graph.nodes
     ]
+
+    mapping = get_molecule_label(extracted_molecules_entites)
+    knowledge_graph = nx.relabel_nodes(knowledge_graph, mapping)
     pos = nx.spring_layout(knowledge_graph, k=0.5, iterations=50)
 
     fig, ax = plt.subplots(figsize=(20, 16))
@@ -287,10 +302,12 @@ def main_create_knoledge_graphes(
     print_graph_stats(grounded_knowledge_graph)
     visualize_graph(
         knowledge_graph,
+        grounded_molecule_entities,
         output_path=Path("results/ground_molecule/knowledge_graph.png"),
     )
     visualize_graph(
         grounded_knowledge_graph,
+        grounded_molecule_entities,
         output_path=Path("results/ground_molecule/knowledge_graph_grounded.png"),
     )
 
