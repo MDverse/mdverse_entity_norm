@@ -1,6 +1,7 @@
 #!/bin/bash
 set -o nounset
 set -o errexit
+set -o pipefail  
 
 FILE_NAME=$1
 
