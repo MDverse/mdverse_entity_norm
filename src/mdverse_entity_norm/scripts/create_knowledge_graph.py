@@ -79,20 +79,6 @@ def create_extracted_molecules_entities(entity_file: pd.DataFrame) -> list:
     return data_set_entities
 
 
-# def create_extracted_molecules_relationships(
-#     entity_file: pd.DataFrame, grounded_molecule_results_known: pd.DataFrame
-# ) -> list:
-#     relationships = []
-#     for entity_name, json_file in zip(
-#         entity_file["entity"],
-#         entity_file["json_file"],
-#         strict=True,
-#     ):
-#         if entity_name in list(grounded_molecule_results_known["MOL"]):
-#             relationships.append({"source": json_file, "target": entity_name})
-#     return relationships
-
-
 def create_extracted_molecules_relationships(
     entity_file: pd.DataFrame, grounded_molecule_results_known: pd.DataFrame
 ) -> list:
