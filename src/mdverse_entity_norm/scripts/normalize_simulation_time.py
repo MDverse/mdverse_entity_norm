@@ -2,6 +2,7 @@
 
 import json
 import os
+import sys
 import time
 from datetime import UTC, datetime
 from pathlib import Path
@@ -105,7 +106,7 @@ def normalize_simulation_time(raw_simulation_time: str, model_name: str):
         )
     )
 
-    logger.info(f"Normalasing: {raw_simulation_time}")
+    logger.info(f"Normalizing: {raw_simulation_time}")
 
     try:
         start_time = time.perf_counter()
@@ -138,7 +139,6 @@ def normalize_simulation_time(raw_simulation_time: str, model_name: str):
         return None, elapsed_time, None
 
     elapsed_time = time.perf_counter() - start_time
-    logger.info(f"Time to normalize: {elapsed_time}")
     logger.info(f"output: {completion_pydantic.output}")
     cost = completion_basic.usage.cost_details["upstream_inference_cost"]
     return completion_pydantic.model_dump_json(), elapsed_time, cost
@@ -214,7 +214,7 @@ def normalize_all_entities(
     entity_number = 1
 
     for raw_simulation_time in raw_simulation_times:
-        logger.info(f"entity: {entity_number} / {len(raw_simulation_times)}")
+        logger.info(f"entity: {entity_number} / {len(raw_simulation_times) + 1}")
         normalisation_result = normalize_simulation_time(
             raw_simulation_time, model_name=model
         )
@@ -248,18 +248,18 @@ def normalize_all_entities(
                             != ground_truth[i]["unit"]
                         ):
                             logger.error(
-                                f"Normalisation failed: "
-                                f"value = {normalized_data['output'][i]['value']}"
-                                f" unit = {normalized_data['output'][i]['unit']}"
+                                "Normalisation failed: "
+                                # f"value = {normalized_data['output'][i]['value']}"
+                                # f" unit = {normalized_data['output'][i]['unit']}"
                             )
                             match = False
                             break
 
                 if match:
                     logger.success(
-                        f"Normalisation successfull: "
-                        f"value = {normalized_data['output'][i]['value']}"
-                        f" unit = {normalized_data['output'][i]['unit']}"
+                        "Normalisation successfull: "
+                        # f"value = {normalized_data['output'][i]['value']}"
+                        # f" unit = {normalized_data['output'][i]['unit']}"
                     )
                     normalised_entity += 1
 
@@ -426,6 +426,8 @@ def main_normalizing_simulation_times(
 if __name__ == "__main__":
     timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
     os.makedirs("logs", exist_ok=True)
+    logger.remove()
+    logger.add(sys.stderr, format=("{level} - {message}"))
     logger.add(
         f"logs/normalize_simulation_time{timestamp}.log",
         level="DEBUG",
