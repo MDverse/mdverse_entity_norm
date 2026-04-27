@@ -17,6 +17,7 @@ API_PDB = "https://data.rcsb.org/rest/v1/core/entry/"
 API_UNIPROT = "https://rest.uniprot.org/uniprotkb/"
 API_CHEBI = "https://www.ebi.ac.uk/chebi/backend/api/public/es_search/"
 API_PUBCHEM = "https://pubchem.ncbi.nlm.nih.gov/rest/pug"
+API_LIGAND = "https://data.rcsb.org/rest/v1/core/chemcomp/"
 
 
 def load_molecule(file_path: Path) -> list:
@@ -37,6 +38,13 @@ def load_molecule(file_path: Path) -> list:
             molecules.append(line.strip())
     logger.success(f"Loaded {len(molecules)} molecule identifiers successfully.")
     return molecules
+
+
+def create_ligand_dict(molecule_list: list):
+    for molecule in molecule_list:
+        response = httpx.get(f"{API_LIGAND}{molecule}", timeout=10)
+        if response.status_code == 200:
+            logger.info(f"Ligand found for {molecule}")
 
 
 def get_type(entry: str) -> str | None:
