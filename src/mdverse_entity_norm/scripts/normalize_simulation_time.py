@@ -317,8 +317,6 @@ def evaluate_all_models(raw_simulation_times: list, ground_truth_file: Path, run
             normalised_entity = normalisation_results[0]
             normalisation_time = normalisation_results[1]
             normalisation_cost = normalisation_results[2]
-            logger.info(f"normalized entities = {normalised_entity}")
-            logger.info(f"length of simulation times = {len(raw_simulation_times)}")
             run_accuracy = (normalised_entity / len(raw_simulation_times)) * 100
 
             logger.info(f"  Run accuracy: {run_accuracy:.1f}%")
