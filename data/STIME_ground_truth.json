@@ -387,7 +387,7 @@
             "output": [
                 {
                     "value": 169,
-                    "unit": "kg"
+                    "unit": null
                 }
             ]
         },
@@ -664,7 +664,7 @@
             "input": "321.8 k",
             "output": [
                 {
-                    "value": 320.1,
+                    "value": 321.8,
                     "unit": null
                 }
             ]
