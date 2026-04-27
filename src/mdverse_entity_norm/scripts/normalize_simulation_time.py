@@ -239,7 +239,6 @@ def normalize_all_entities(
                     match = False
                 else:
                     for i in range(len(normalized_data["output"])):
-                        entity_number += 1
                         if (
                             normalized_data["output"][i]["value"]
                             != ground_truth[i]["value"]
@@ -261,7 +260,10 @@ def normalize_all_entities(
                         # f"value = {normalized_data['output'][i]['value']}"
                         # f" unit = {normalized_data['output'][i]['unit']}"
                     )
+                    entity_number += 1
                     normalised_entity += 1
+                else:
+                    entity_number += 1
 
     # logger.info(f"entity: {normalised_entity} / {len(raw_simulation_times)}")
     return normalised_entity, normalisation_time, normalisation_cost
