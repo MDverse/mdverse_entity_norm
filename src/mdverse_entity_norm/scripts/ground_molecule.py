@@ -41,10 +41,27 @@ def load_molecule(file_path: Path) -> list:
 
 
 def create_ligand_dict(molecule_list: list):
+    """Create a list of molecule that are also ligand.
+
+    Prameters
+    ---------
+    molecule_list(list) : list of molecule names to verify
+
+    Returns
+    -------
+        list: LIst of ligand found in the PDB
+    """
+    ligand = []
     for molecule in molecule_list:
         response = httpx.get(f"{API_LIGAND}{molecule}", timeout=10)
         if response.status_code == 200:
-            logger.info(f"Ligand found for {molecule}")
+            logger.success(f"Ligand found for {molecule}")
+        else:
+            logger.error(
+                f"No ligand found for {molecule} error : {response.status_code}"
+            )
+
+    return ligand
 
 
 def get_type(entry: str) -> str | None:
@@ -522,6 +539,8 @@ def ground_molecules(mol_filepath: Path, grounded_mol_filepath: Path) -> None:
     grounded_mols, not_grounded_mols = grouding_mol(molecules)
     logger.info(grounded_mols)
     save_found_results_into_tsv(grounded_mols, not_grounded_mols, grounded_mol_filepath)
+    print(len(create_ligand_dict(not_grounded_mols)))
+    print(create_ligand_dict(not_grounded_mols))
 
 
 if __name__ == "__main__":
