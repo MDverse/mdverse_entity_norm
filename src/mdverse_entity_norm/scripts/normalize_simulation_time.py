@@ -18,13 +18,14 @@ from pydantic import BaseModel, Field
 
 load_dotenv()
 
-MODEL = ["openai/gpt-4o"]
-
-# "deepseek/deepseek-v3.2",
-# "google/gemma-4-31b-it",
-# "qwen/qwen3.5-122b-a10b",
-# "minimax/minimax-m2.5",
-# "moonshotai/kimi-k2.6",
+MODEL = [
+    "openai/gpt-4o",
+    "deepseek/deepseek-v3.2",
+    "google/gemma-4-31b-it",
+    "qwen/qwen3.5-122b-a10b",
+    "minimax/minimax-m2.5",
+    "moonshotai/kimi-k2.6",
+]
 
 
 class SimulationTime(BaseModel):
@@ -138,9 +139,7 @@ def normalize_simulation_time(raw_simulation_time: str, model_name: str):
 
     elapsed_time = time.perf_counter() - start_time
     logger.info(f"Time to normalize: {elapsed_time}")
-    logger.info(f"input: {completion_pydantic.input}")
     logger.info(f"output: {completion_pydantic.output}")
-    logger.success("Normalisation was successful")
     cost = completion_basic.usage.cost_details["upstream_inference_cost"]
     return completion_pydantic.model_dump_json(), elapsed_time, cost
 
@@ -162,7 +161,7 @@ def format_norm_simulation_time(raw_simulation_time: list, model_name: str) -> d
     """
     all_simulation_times_norm = []
     normalisation_output = {}
-    logger.info("Normalizing the simulation times...")
+    # logger.info("Normalizing the simulation times...")
     for simulation_time in raw_simulation_time:
         normalization_result = normalize_simulation_time(simulation_time, model_name)
         if normalization_result:
@@ -175,7 +174,7 @@ def format_norm_simulation_time(raw_simulation_time: list, model_name: str) -> d
             }
             all_simulation_times_norm.append(simulation_time_not_normalized)
     normalisation_output["normalisation_output"] = all_simulation_times_norm
-    logger.success("Normalizing the simulation times successfull")
+    # logger.success("Normalizing the simulation times successfull")
     return normalisation_output
 
 
@@ -186,7 +185,7 @@ def save_norm_simulation_results(
     logger.info("Saving the normalisation results in the JSON file")
     with open(normalized_simulation_time, "w") as file_1:
         json.dump(normalisation_output, file_1, indent=4, ensure_ascii=False)
-    logger.success("Saving results to JSON file successful")
+    # logger.success("Saving results to JSON file successful")
 
 
 def normalize_all_entities(
@@ -209,12 +208,13 @@ def normalize_all_entities(
     int: The number of correctly normalized simulation times compared to the ground
     truth.
     """
-    normalised_entity = 1
+    normalised_entity = 0
     normalisation_time = 0
     normalisation_cost = 0
+    entity_number = 1
 
     for raw_simulation_time in raw_simulation_times:
-        # logger.info(f"entity: {normalised_entity} / {len(raw_simulation_times) + 1}")
+        logger.info(f"entity: {entity_number} / {len(raw_simulation_times)}")
         normalisation_result = normalize_simulation_time(
             raw_simulation_time, model_name=model
         )
@@ -239,29 +239,31 @@ def normalize_all_entities(
                     match = False
                 else:
                     for i in range(len(normalized_data["output"])):
+                        entity_number += 1
                         if (
                             normalized_data["output"][i]["value"]
                             != ground_truth[i]["value"]
-                        ):
-                            logger.error(
-                                f"Normalisation value failed : {normalized_data['output'][i]['value']} "
-                            )
-                            match = False
-                            break
-                        if (
+                        ) or (
                             normalized_data["output"][i]["unit"]
                             != ground_truth[i]["unit"]
                         ):
                             logger.error(
-                                f"Normalisation unit failed : {normalized_data['output'][i]['value']} "
+                                f"Normalisation failed: "
+                                f"value = {normalized_data['output'][i]['value']}"
+                                f" unit = {normalized_data['output'][i]['unit']}"
                             )
                             match = False
                             break
 
                 if match:
+                    logger.success(
+                        f"Normalisation successfull: "
+                        f"value = {normalized_data['output'][i]['value']}"
+                        f" unit = {normalized_data['output'][i]['unit']}"
+                    )
                     normalised_entity += 1
 
-    logger.info(f"entity: {normalised_entity} / {len(raw_simulation_times)}")
+    # logger.info(f"entity: {normalised_entity} / {len(raw_simulation_times)}")
     return normalised_entity, normalisation_time, normalisation_cost
 
 
@@ -305,18 +307,18 @@ def evaluate_all_models(raw_simulation_times: list, ground_truth_file: Path, run
         total_normalisation_cost = 0
 
         for run in range(runs):
+            logger.info("-" * 80)
             logger.info(f"Run {run + 1}/{runs}")
 
-            normalised_entity = normalize_all_entities(
+            normalisation_results = normalize_all_entities(
                 raw_simulation_times, model, ground_truth_dict
-            )[0]
-            normalisation_time = normalize_all_entities(
-                raw_simulation_times, model, ground_truth_dict
-            )[1]
-            normalisation_cost = normalize_all_entities(
-                raw_simulation_times, model, ground_truth_dict
-            )[2]
+            )
 
+            normalised_entity = normalisation_results[0]
+            normalisation_time = normalisation_results[1]
+            normalisation_cost = normalisation_results[2]
+            logger.info(f"normalized entities = {normalised_entity}")
+            logger.info(f"length of simulation times = {len(raw_simulation_times)}")
             run_accuracy = (normalised_entity / len(raw_simulation_times)) * 100
 
             logger.info(f"  Run accuracy: {run_accuracy:.1f}%")
