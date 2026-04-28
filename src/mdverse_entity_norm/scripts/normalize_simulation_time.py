@@ -79,22 +79,23 @@ Rules:
 
 # We load the simulation times from the file in a list of simulatuion time to enable
 # slicing the list
-def load_simulation_times(raw_simu_times_file: Path) -> list:
+def load_simulation_times(ground_truth_file: Path) -> list:
     """Load simulation times from a file into a list.
 
     Parameters
     ----------
-    raw_simu_times_file (Path): Path to the input file containing the simulation times
+    ground_truth_file (Path): Path to the input file containing the simulation times
 
     Returns
     -------
-    list: A list of  simulation times loaded from the file
+    list: A list of simulation times loaded from the file
     """
-    logger.info(f"Loading the simulation times from {raw_simu_times_file}...")
+    logger.info(f"Loading the simulation times from {ground_truth_file}...")
     times = []
-    with open(raw_simu_times_file) as file_1:
-        for line in file_1:
-            times.append(line.strip())
+    with open(ground_truth_file) as gt_file:
+        ground_truth = json.load(gt_file)
+        for value in ground_truth["groundtruth"]:
+            times.append(value["input"])
     logger.success(f"Loaded {len(times)} simulation times successfully.")
     return times
 
@@ -121,7 +122,7 @@ def normalize_simulation_time(raw_simulation_time: str, model_name: str):
         )
     )
 
-    logger.info(f"Normalizing: {raw_simulation_time}")
+    logger.info(f"{model_name} | Normalizing: {raw_simulation_time}")
 
     try:
         start_time = time.perf_counter()
@@ -154,7 +155,7 @@ def normalize_simulation_time(raw_simulation_time: str, model_name: str):
         return None, elapsed_time, None
 
     elapsed_time = time.perf_counter() - start_time
-    logger.info(f"output: {completion_pydantic.output}")
+    logger.info(f"{model_name} | output: {completion_pydantic.output}")
     cost = completion_basic.usage.cost_details["upstream_inference_cost"]
     return completion_pydantic.model_dump_json(), elapsed_time, cost
 
@@ -230,7 +231,7 @@ def normalize_all_entities(
     entity_number = 1
 
     for raw_simulation_time in raw_simulation_times:
-        logger.info(f"entity: {entity_number} / {len(raw_simulation_times) + 1}")
+        logger.info(f"{model} | entity: {entity_number} / {len(raw_simulation_times)}")
         normalisation_result = normalize_simulation_time(
             raw_simulation_time, model_name=model
         )
@@ -260,7 +261,7 @@ def normalize_all_entities(
                             != ground_truth[i]["value"]
                         ):
                             logger.error(
-                                "Normalisation failed: "
+                                f"{model} | Normalisation failed: "
                                 # f"value = {normalized_data['output'][i]['value']}"
                                 # f" unit = {normalized_data['output'][i]['unit']}"
                             )
@@ -271,7 +272,7 @@ def normalize_all_entities(
                             != ground_truth[i]["unit"]
                         ):
                             logger.error(
-                                "Normalisation failed: "
+                                f"{model} | Normalisation failed: "
                                 # f"value = {normalized_data['output'][i]['value']}"
                                 # f" unit = {normalized_data['output'][i]['unit']}"
                             )
@@ -280,7 +281,7 @@ def normalize_all_entities(
 
                 if match:
                     logger.success(
-                        "Normalisation successfull: "
+                        f"{model} | Normalisation successfull: "
                         # f"value = {normalized_data['output'][i]['value']}"
                         # f" unit = {normalized_data['output'][i]['unit']}"
                     )
@@ -320,13 +321,19 @@ def evaluate_all_models(raw_simulation_times: list, ground_truth_file: Path, run
 
     for model in MODEL:
         logger.info(f"Model: {model}")
-        model_log = model.replace("/", "_")
-        timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
-        os.makedirs("logs", exist_ok=True)
-        model_log_id = logger.add(
-            f"logs/{model_log}_{timestamp}.log",
-            level="DEBUG",
-        )
+        # model_log = model.replace("/", "_")
+        # timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
+        # os.makedirs("logs", exist_ok=True)
+        # logger_format = (
+        #     "{time:YYYY-MM-DD HH:mm:ss} "
+        #     "| <level>{level:<8}</level> "
+        #     "| <level>{message}</level>"
+        # )
+        # model_log_id = logger.add(
+        #     f"logs/{model_log}_{timestamp}.log",
+        #     format=logger_format,
+        #     level="DEBUG",
+        # )
 
         total_correct = 0
         total_normalisation_time = 0
@@ -334,7 +341,7 @@ def evaluate_all_models(raw_simulation_times: list, ground_truth_file: Path, run
 
         for run in range(runs):
             logger.info("-" * 80)
-            logger.info(f"Run {run + 1}/{runs}")
+            logger.info(f"{model} | Run {run + 1}/{runs}")
 
             normalisation_results = normalize_all_entities(
                 raw_simulation_times, model, ground_truth_dict
@@ -368,7 +375,7 @@ def evaluate_all_models(raw_simulation_times: list, ground_truth_file: Path, run
             f"\n {model} : Accuracy = {accuracy:.1f}% Time = {total_normalisation_time}"
             f" Cost = {total_normalisation_cost}\n"
         )
-        logger.remove(model_log_id)
+        # logger.remove(model_log_id)
 
     return results
 
@@ -409,12 +416,6 @@ def save_evaluation_results_in_tsv(
     help="Path to the JSON output file containing the normalized simulation times",
 )
 @click.option(
-    "--raw_simu_times_file",
-    default="data/STIME.txt",
-    type=click.Path(exists=True, file_okay=True, path_type=Path),
-    help="Path to the input file containing the raw simulation times",
-)
-@click.option(
     "--ground_truth_file",
     default="data/STIME_ground_truth.json",
     type=click.Path(exists=True, file_okay=True, path_type=Path),
@@ -433,14 +434,13 @@ def save_evaluation_results_in_tsv(
     help="Path to the TSV file for model evaluation results",
 )
 def main_normalizing_simulation_times(
-    raw_simu_times_file: Path,
     normalized_simulation_time: Path,
     ground_truth_file: Path,
     runs: int,
     model_evaluation_file: Path,
 ):
     """Normalize the simulation times entities bu running all annexe functions."""
-    times = load_simulation_times(raw_simu_times_file)
+    times = load_simulation_times(ground_truth_file)
     times = times[:]
     # normalisation_output = format_norm_simulation_time(times, model_name=MODEL[0])
     # save_norm_simulation_results(normalisation_output, normalized_simulation_time)
@@ -452,8 +452,13 @@ def main_normalizing_simulation_times(
 if __name__ == "__main__":
     timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
     os.makedirs("logs", exist_ok=True)
+    logger_format = (
+        "{time:YYYY-MM-DD HH:mm:ss} "
+        "| <level>{level:<8}</level> "
+        "| <level>{message}</level>"
+    )
     logger.remove()
-    logger.add(sys.stderr, format=("{level} - {message}"))
+    logger.add(sys.stdout, format=logger_format, level="DEBUG")
     logger.add(
         f"logs/normalize_simulation_time{timestamp}.log",
         level="DEBUG",
