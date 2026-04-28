@@ -19,6 +19,7 @@ from pydantic import BaseModel, Field
 
 load_dotenv()
 
+# We deifine the list of model that we are going to test
 MODEL = [
     "openai/gpt-4o",
     "deepseek/deepseek-v3.2",
@@ -27,6 +28,13 @@ MODEL = [
     "minimax/minimax-m2.5",
     "moonshotai/kimi-k2.6",
 ]
+
+# We creat a pydantic class that will define the structure the llm output
+# - The SimulationTime class will define the structure of a simulation time :
+#    value, unit
+# - The NormSimuTime class will define the structure of the llm output :
+#    input (simluation time given to normalize)
+#    output (structured simulation time -> defined by the previous class)
 
 
 class SimulationTime(BaseModel):
@@ -49,6 +57,7 @@ class NormSimuTime(BaseModel):
     )
 
 
+# We create the prompt containning the normalisation guideline for the llm
 PROMPT = """You are a unit normalization assistant for simulation times.
 Your task: Convert all time units to standard abbreviations (ps, ns, μs, ms, s)
 and split values from units.
@@ -68,6 +77,8 @@ Rules:
  """
 
 
+# We load the simulation times from the file in a list of simulatuion time to enable
+# slicing the list
 def load_simulation_times(raw_simu_times_file: Path) -> list:
     """Load simulation times from a file into a list.
 
@@ -88,6 +99,9 @@ def load_simulation_times(raw_simu_times_file: Path) -> list:
     return times
 
 
+# We give to a chosen model a normalisation time, the model is called via an
+# openrouter key and use instructor to ensure the structured output of the llm.
+# We retrieve the time and the cost of the normalisation
 def normalize_simulation_time(raw_simulation_time: str, model_name: str):
     """Normalize the units in the simulation time text to standard units.
 
@@ -145,6 +159,7 @@ def normalize_simulation_time(raw_simulation_time: str, model_name: str):
     return completion_pydantic.model_dump_json(), elapsed_time, cost
 
 
+# We format the output of the normalized simulation time in a json format.
 def format_norm_simulation_time(raw_simulation_time: list, model_name: str) -> dict:
     """Format the normalized time to a JSON format with the normalized values.
 
@@ -162,10 +177,11 @@ def format_norm_simulation_time(raw_simulation_time: list, model_name: str) -> d
     """
     all_simulation_times_norm = []
     normalisation_output = {}
-    # logger.info("Normalizing the simulation times...")
+    # We loop on the list of simulation times and normalize each entity
     for simulation_time in raw_simulation_time:
         normalization_result = normalize_simulation_time(simulation_time, model_name)
         if normalization_result:
+            # We put the normalized simulation times in a json format
             simulation_time_normalized = json.loads(normalization_result[0])
             all_simulation_times_norm.append(simulation_time_normalized)
         else:
@@ -175,7 +191,6 @@ def format_norm_simulation_time(raw_simulation_time: list, model_name: str) -> d
             }
             all_simulation_times_norm.append(simulation_time_not_normalized)
     normalisation_output["normalisation_output"] = all_simulation_times_norm
-    # logger.success("Normalizing the simulation times successfull")
     return normalisation_output
 
 
