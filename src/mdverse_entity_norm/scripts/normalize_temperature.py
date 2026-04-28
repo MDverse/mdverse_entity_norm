@@ -34,6 +34,12 @@ def norm_temp(temp_str: str) -> tuple:
     #   This group consists of zero or more spaces, because of the "*" symbol,
     #   an optional degree symbol, then zero or more spaces, and zero or more letters.
     logger.info("Normalising temperature entities ...")
+    # If the temperatue is anotated as room temperature or body temperature
+    # we normalize it to the standard value
+    if temp_str == "room temperature":
+        return (293, "K")
+    if temp_str == "body temperature":
+        return (310.15, "K")
     temperature_match = re.search(r"([0-9]+)(\.?[0-9]+)?( *°? *[a-z]*)?", temp_str)
     if temperature_match is None:
         return None, None
