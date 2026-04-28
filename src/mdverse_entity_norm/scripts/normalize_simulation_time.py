@@ -49,7 +49,7 @@ class NormSimuTime(BaseModel):
     )
 
 
-PROMPT = """You are a unit normalization assistant for simulation time values.
+PROMPT = """You are a unit normalization assistant for simulation times.
 Your task: Convert all time units to standard abbreviations (ps, ns, μs, ms, s)
 and split values from units.
 
@@ -59,11 +59,12 @@ Rules:
     ms (milliseconds), s (seconds)
 - Preserve the original order of values found in the text
 - Always split value and unit (e.g. "500ns" → value: 500, unit: "ns")
-- Take in consideration values written in letter (e.g. "one hundred"), and transfrom it
+- Take in consideration values written in letter (e.g. "one hundred"), and transform it
     to a numeric value
+- If the simulation time is an interval, separate each simulation time in the interval.
 - If the value is missing only take in consideration the unit
-- If the unit is k or is missing define the normalized value of the unit to "None"
-- If the value is missing define the normalized value to "None"
+- If the unit is k or is missing define the normalized unit to "None"
+- If the numerical value is missing define the normalized value to "None"
  """
 
 
@@ -242,7 +243,15 @@ def normalize_all_entities(
                         if (
                             normalized_data["output"][i]["value"]
                             != ground_truth[i]["value"]
-                        ) or (
+                        ):
+                            logger.error(
+                                "Normalisation failed: "
+                                # f"value = {normalized_data['output'][i]['value']}"
+                                # f" unit = {normalized_data['output'][i]['unit']}"
+                            )
+                            match = False
+                            break
+                        if (
                             normalized_data["output"][i]["unit"]
                             != ground_truth[i]["unit"]
                         ):
