@@ -122,7 +122,7 @@ def normalize_simulation_time(raw_simulation_time: str, model_name: str):
         )
     )
 
-    logger.info(f"{model_name} | Normalizing: {raw_simulation_time}")
+    logger.info(f"{model_name.replace('-', '_')} | Normalizing: {raw_simulation_time}")
 
     try:
         start_time = time.perf_counter()
@@ -155,7 +155,9 @@ def normalize_simulation_time(raw_simulation_time: str, model_name: str):
         return None, elapsed_time, None
 
     elapsed_time = time.perf_counter() - start_time
-    logger.info(f"{model_name} | output: {completion_pydantic.output}")
+    logger.info(
+        f"{model_name.replace('-', '_')} | output: {completion_pydantic.output}"
+    )
     cost = completion_basic.usage.cost_details["upstream_inference_cost"]
     return completion_pydantic.model_dump_json(), elapsed_time, cost
 
@@ -231,7 +233,10 @@ def normalize_all_entities(
     entity_number = 1
 
     for raw_simulation_time in raw_simulation_times:
-        logger.info(f"{model} | entity: {entity_number} / {len(raw_simulation_times)}")
+        logger.info("-" * 100)
+        logger.info(
+            f"{model.replace('-', '_')} | entity: {entity_number} / {len(raw_simulation_times)}"
+        )
         normalisation_result = normalize_simulation_time(
             raw_simulation_time, model_name=model
         )
@@ -261,7 +266,7 @@ def normalize_all_entities(
                             != ground_truth[i]["value"]
                         ):
                             logger.error(
-                                f"{model} | Normalisation failed: "
+                                f"{model.replace('-', '_')} | Normalisation failed: "
                                 # f"value = {normalized_data['output'][i]['value']}"
                                 # f" unit = {normalized_data['output'][i]['unit']}"
                             )
@@ -272,7 +277,7 @@ def normalize_all_entities(
                             != ground_truth[i]["unit"]
                         ):
                             logger.error(
-                                f"{model} | Normalisation failed: "
+                                f"{model.replace('-', '_')} | Normalisation failed: "
                                 # f"value = {normalized_data['output'][i]['value']}"
                                 # f" unit = {normalized_data['output'][i]['unit']}"
                             )
@@ -281,7 +286,7 @@ def normalize_all_entities(
 
                 if match:
                     logger.success(
-                        f"{model} | Normalisation successfull: "
+                        f"{model.replace('-', '_')} | Normalisation successfull: "
                         # f"value = {normalized_data['output'][i]['value']}"
                         # f" unit = {normalized_data['output'][i]['unit']}"
                     )
@@ -320,28 +325,15 @@ def evaluate_all_models(raw_simulation_times: list, ground_truth_file: Path, run
     results = []
 
     for model in MODEL:
-        logger.info(f"Model: {model}")
-        # model_log = model.replace("/", "_")
-        # timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
-        # os.makedirs("logs", exist_ok=True)
-        # logger_format = (
-        #     "{time:YYYY-MM-DD HH:mm:ss} "
-        #     "| <level>{level:<8}</level> "
-        #     "| <level>{message}</level>"
-        # )
-        # model_log_id = logger.add(
-        #     f"logs/{model_log}_{timestamp}.log",
-        #     format=logger_format,
-        #     level="DEBUG",
-        # )
-
+        logger.info("-" * 20)
+        logger.info(f"Model: {model.replace('-', '_')}")
         total_correct = 0
         total_normalisation_time = 0
         total_normalisation_cost = 0
 
         for run in range(runs):
             logger.info("-" * 80)
-            logger.info(f"{model} | Run {run + 1}/{runs}")
+            logger.info(f"{model.replace('-', '_')} | Run {run + 1}/{runs}")
 
             normalisation_results = normalize_all_entities(
                 raw_simulation_times, model, ground_truth_dict
@@ -372,7 +364,7 @@ def evaluate_all_models(raw_simulation_times: list, ground_truth_file: Path, run
         )
 
         logger.info(
-            f"\n {model} : Accuracy = {accuracy:.1f}% Time = {total_normalisation_time}"
+            f"\n {model.replace('-', '_')} : Accuracy = {accuracy:.1f}% Time = {total_normalisation_time}"
             f" Cost = {total_normalisation_cost}\n"
         )
         # logger.remove(model_log_id)
@@ -462,5 +454,6 @@ if __name__ == "__main__":
     logger.add(
         f"logs/normalize_simulation_time{timestamp}.log",
         level="DEBUG",
+        format=logger_format,
     )
     main_normalizing_simulation_times()
