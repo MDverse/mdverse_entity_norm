@@ -13,7 +13,16 @@
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": null,
-        "family": "charmm"
+        "family": "charmm",
+        "publication": "https://doi.org/10.1038/nmeth.4067"
+        },
+        {"name": "CHARMM36-WYF",
+        "synonyms": ["charm36-wyf"],
+        "resolution": "all-atom",
+        "molecular_type": null,
+        "ontology_link": null,
+        "family": "charmm",
+        "publication": "https://doi.org/10.1021/acs.jctc.8b00839"
         },
         {"name": "Charmm 27",
         "synonyms": ["charmm27"],
@@ -28,6 +37,14 @@
         "molecular_type": null,
         "ontology_link": null,
         "family": "charmm"
+        },
+        {"name": "Charmm 22",
+        "synonyms": ["charmm22"],
+        "resolution": "all-atom",
+        "molecular_type": null,
+        "ontology_link": null,
+        "family": "charmm",
+        "publication": "https://doi.org/10.1021/jp973084f"
         },
         {"name": "Charmm",
         "synonyms": ["charmm"],
