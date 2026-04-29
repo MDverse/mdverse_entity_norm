@@ -10,6 +10,7 @@ from pathlib import Path
 import click
 import gilda
 import httpx
+import pandas as pd
 from loguru import logger
 
 # API endpoints for different molecular databases
@@ -31,13 +32,13 @@ def load_molecule(file_path: Path) -> list:
     -------
     list: A list of molecular identifiers loaded from the file
     """
-    logger.info(f"Loading molecule identifiers from {file_path}...")
-    molecules = []
-    with open(file_path) as raw_molecule_file:
-        for line in raw_molecule_file:
-            molecules.append(line.strip())
-    logger.success(f"Loaded {len(molecules)} molecule identifiers successfully.")
-    return molecules
+    logger.info(f"Loading MOL entities from {file_path}...")
+    entities = pd.read_csv(file_path, sep="\t")
+    mol_entities = entities[entities["category"] == "MOL"]
+    mol_entities = list(mol_entities["entity"].unique())
+
+    logger.info(f"Loaded {len(mol_entities)} MOL entities successfully.")
+    return mol_entities
 
 
 def create_ligand_dict(molecule_list: list):
@@ -533,7 +534,7 @@ def ground_molecules(mol_filepath: Path, grounded_mol_filepath: Path) -> None:
     """Ground all molecules in the input file and write results to output file."""
     # Load molecule enntities from txt file
     molecules = load_molecule(mol_filepath)
-    # Filter only the 5 first molecules for testing
+    # Possibility to filter only the 5 first molecules for testing
     molecules = molecules[:]
     # Grounding the molecule
     grounded_mols, not_grounded_mols = grouding_mol(molecules)
