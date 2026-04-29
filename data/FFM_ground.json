@@ -1,0 +1,61 @@
+{
+    "force_fields":
+    [
+        {"name": "Charmm 36",
+        "synonyms": ["charmm36", "charmmc36", "c36"],
+        "resolution": "all-atom",
+        "molecular_type": null,
+        "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_000132",
+        "family": "charmm"
+        },
+        {"name": "Charmm",
+        "synonyms": ["charmm"],
+        "resolution": "all-atom",
+        "molecular_type": null,
+        "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_000248",
+        "family": "charmm"
+        },
+        {"name": "TIP3P",
+        "synonyms": ["tip3p", "charmmtip3p"],
+        "resolution": "all-atom",
+        "molecular_type": "water",
+        "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_000022",
+        "family": "water"
+        },
+        {"name": "Gromos 53a6",
+        "synonyms": ["gromos53a6", "53a6"],
+        "resolution": "all-atom",
+        "molecular_type": "water",
+        "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_001974",
+        "family": "gromos"
+        },
+        {"name": "Gromos 54a7",
+        "synonyms": ["gromos54a7", "54a7"],
+        "resolution": "all-atom",
+        "molecular_type": null,
+        "ontology_link": null,
+        "family": "gromos"
+        },
+        {"name": "AMBER ff03",
+        "synonyms": ["amberff03", "ff03", "amber03"],
+        "resolution": "all-atom",
+        "molecular_type": null,
+        "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_001442",
+        "family": "amber"
+        },
+        {"name": "Martini 3",
+        "synonyms": ["martini3", "martinini3.0"],
+        "resolution": "coarse-grain",
+        "molecular_type": null,
+        "ontology_link": null,
+        "family": "martini"
+        },
+        {"name": "GAFF",
+        "synonyms": ["generalamberforcefield", "generalizedamberforcefield"],
+        "resolution": "coarse-grain",
+        "molecular_type": null,
+        "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_000023",
+        "family": "amber"
+        }
+    ]
+}
