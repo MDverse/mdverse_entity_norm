@@ -134,6 +134,14 @@
         "ontology_link": null,
         "family": "amber"
         },
+        {"name": "Lipid 21",
+        "synonyms": ["lipid21"],
+        "resolution": "all-atom",
+        "molecular_type": "lipid",
+        "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_000018",
+        "family": "amber",
+        "publication":"https://doi.org/10.1021/acs.jctc.1c01217"
+        },
         {"name": "Martini 3",
         "synonyms": ["martini3", "martinini3.0"],
         "resolution": "coarse-grain",
@@ -170,5 +178,6 @@
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_001450",
         "family": "amber"
         }
+
     ]
 }
