@@ -22,11 +22,14 @@ load_dotenv()
 # We deifine the list of model that we are going to test
 MODEL = [
     "openai/gpt-4o",
-    "deepseek/deepseek-v3.2",
+    "openai/gpt-5.5",
+    "deepseek/deepseek-v4-pro",
     "google/gemma-4-31b-it",
-    "qwen/qwen3.5-122b-a10b",
-    "minimax/minimax-m2.5",
+    "qwen/qwen3.6-27b",
+    "minimax/minimax-m2.7",
     "moonshotai/kimi-k2.6",
+    "anthropic/claude-opus-4.7",
+    "mistralai/mistral-large-2512",
 ]
 
 # We creat a pydantic class that will define the structure the llm output
@@ -266,9 +269,7 @@ def normalize_all_entities(
                             != ground_truth[i]["value"]
                         ):
                             logger.error(
-                                f"{model.replace('-', '_')} | Normalisation failed: "
-                                # f"value = {normalized_data['output'][i]['value']}"
-                                # f" unit = {normalized_data['output'][i]['unit']}"
+                                f"{model.replace('-', '_')} | Normalisation failed "
                             )
                             match = False
                             break
@@ -277,18 +278,14 @@ def normalize_all_entities(
                             != ground_truth[i]["unit"]
                         ):
                             logger.error(
-                                f"{model.replace('-', '_')} | Normalisation failed: "
-                                # f"value = {normalized_data['output'][i]['value']}"
-                                # f" unit = {normalized_data['output'][i]['unit']}"
+                                f"{model.replace('-', '_')} | Normalisation failed "
                             )
                             match = False
                             break
 
                 if match:
                     logger.success(
-                        f"{model.replace('-', '_')} | Normalisation successfull: "
-                        # f"value = {normalized_data['output'][i]['value']}"
-                        # f" unit = {normalized_data['output'][i]['unit']}"
+                        f"{model.replace('-', '_')} | Normalisation successfull "
                     )
                     entity_number += 1
                     normalised_entity += 1
@@ -357,9 +354,9 @@ def evaluate_all_models(raw_simulation_times: list, ground_truth_file: Path, run
         results.append(
             {
                 "model_name": model,
-                "accuracy_percentage": round(accuracy, 2),
-                "normalisation_time": round(normalisation_time_by_entity, 2),
-                "normalisation_cost": round(total_normalisation_cost, 2),
+                "percentage_percentage": round(accuracy),
+                "inference_time_by_entity": round(normalisation_time_by_entity),
+                "inference_cost_by_entity_USD": round(total_normalisation_cost),
             }
         )
 
@@ -367,7 +364,6 @@ def evaluate_all_models(raw_simulation_times: list, ground_truth_file: Path, run
             f"\n {model.replace('-', '_')} : Accuracy = {accuracy:.1f}% Time = {total_normalisation_time}"
             f" Cost = {total_normalisation_cost}\n"
         )
-        # logger.remove(model_log_id)
 
     return results
 
