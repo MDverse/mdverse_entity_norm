@@ -75,7 +75,7 @@ Rules:
     to a numeric value
 - If the simulation time is an interval, separate each simulation time in the interval.
 - If the value is missing only take in consideration the unit
-- If the unit is k or is missing define the normalized unit to "None"
+- If the unit is missing or is not a time unit define the normalized unit to "None"
 - If the numerical value is missing define the normalized value to "None"
  """
 
