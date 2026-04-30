@@ -187,7 +187,6 @@
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_000023",
         "family": "amber"
         },
-
         {"name": "GAFFLipid",
         "synonyms": ["gafflipid"],
         "resolution": "all-atom",
