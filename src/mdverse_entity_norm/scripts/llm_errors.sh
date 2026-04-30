@@ -16,8 +16,7 @@ CheckArgument() {
     fi
 }
 
-ExtractModel() {
-    
+ExtractModel() {  
     grep "failed" -B 2 "$FILE_NAME" | grep "Normalizing" | cut -d '|' -f 3 
 }
 ExtractInput() {
@@ -31,10 +30,10 @@ ExtractOutput() {
 ExtractOutput() {
     grep "failed" -B 2 "$FILE_NAME" | grep -E "SimulationTime|failed after" | \
     awk -F ':' '/SimulationTime/ { print $4 } /failed after/ { print "failed after 3 attempts" }'
-}
+    }
 
 PrintNumberError() {
-    paste <(ExtractModel) <(ExtractInput) <(ExtractOutput) | sort | uniq -c | sort -n
+    paste <(ExtractModel) <(ExtractInput) <(ExtractOutput) | sort | uniq -c | sort -rn
 }
 
 llm_errors() {
