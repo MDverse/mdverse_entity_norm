@@ -33,12 +33,11 @@ ExtractOutput() {
     }
 
 PrintNumberError() {
-    paste <(ExtractModel) <(ExtractInput) <(ExtractOutput) | sort | uniq -c | sort -rn
+    paste <(ExtractModel) <(ExtractInput) <(ExtractOutput) | sort 
 }
 
 llm_errors() {
     CheckArgument
-    echo "Errors in ${FILE_NAME}:"
     PrintNumberError
 }
 
