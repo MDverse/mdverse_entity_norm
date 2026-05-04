@@ -354,7 +354,7 @@ def evaluate_all_models(raw_simulation_times: list, ground_truth_file: Path, run
         results.append(
             {
                 "model_name": model,
-                "percentage_percentage": round(accuracy),
+                "accuracy_percentage": round(accuracy),
                 "inference_time_by_entity": round(normalisation_time_by_entity),
                 "inference_cost_by_entity_USD": round(total_normalisation_cost),
             }
