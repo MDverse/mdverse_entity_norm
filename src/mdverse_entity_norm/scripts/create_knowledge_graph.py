@@ -8,6 +8,8 @@ import networkx as nx
 import pandas as pd
 from loguru import logger
 
+IONS = ["na", "nacl", "na+", "k+", "cl-", "cl", "k", "sol", "ca", "cacl2"]
+
 
 def get_extracted_molecules(
     entities_path: Path, number_of_datasets: int
@@ -27,19 +29,19 @@ def get_extracted_molecules(
         Filtered dataframe containing molecule entities
     """
     entity_file = pd.read_csv(entities_path, sep="\t")
-    # entity_file = entity_file[entity_file["category"] == "MOL"]
-    # working_files = entity_file["json_file"].unique()[:number_of_datasets]
-    # entity_file = entity_file[entity_file["json_file"].isin(working_files)]
-    json_files = [
-        "zenodo_1293813.json",
-        "zenodo_1488094.json",
-        "zenodo_247386.json",
-        "zenodo_5060102.json",
-        "zenodo_7007107.json",
-        "zenodo_34415.json",
-        "zenodo_1219494.json",
-    ]
-    entity_file = entity_file[entity_file["json_file"].isin(json_files)]
+    entity_file = entity_file[entity_file["category"] == "MOL"]
+    working_files = entity_file["json_file"].unique()[:]
+    entity_file = entity_file[entity_file["json_file"].isin(working_files)]
+    # json_files = [
+    #     "zenodo_1293813.json",
+    #     "zenodo_1488094.json",
+    #     "zenodo_247386.json",
+    #     "zenodo_5060102.json",
+    #     "zenodo_7007107.json",
+    #     "zenodo_34415.json",
+    #     "zenodo_1219494.json",
+    # ]
+    # entity_file = entity_file[entity_file["json_file"].isin(json_files)]
     entity_file = entity_file.drop_duplicates(subset=["json_file", "entity"])
     return entity_file
 
@@ -113,6 +115,9 @@ def create_extracted_molecules_relationships(
         entity_file["json_file"],
         strict=True,
     ):
+        entity_name_clean = entity_name.lower().strip()
+        if entity_name_clean in IONS:
+            continue
         if entity_name in known_molecules:
             clean_json_file = json_file.replace("zenodo_", "zenodo\n")
             clean_json_file = clean_json_file.replace("figshare_", "figshare\n")
