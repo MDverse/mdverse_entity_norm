@@ -61,22 +61,19 @@ class NormSimuTime(BaseModel):
 
 
 # We create the prompt containning the normalisation guideline for the llm
-PROMPT = """You are a unit normalization assistant for simulation times.
-Your task: Convert all time units to standard abbreviations (ps, ns, μs, ms, s)
-and split values from units.
+PROMPT = """You are a unit normalization assistant for molecular dynamics simulation times.
+Your tasks:
+- Convert all time units to standard time abbreviations (ps, ns, μs, ms, s)
+- Separate numerical values from time units
 
 Rules:
-- No markdown, no explanation.
-- Standard units to use: ps (picoseconds), ns (nanoseconds), μs (microseconds),
-    ms (milliseconds), s (seconds)
-- Preserve the original order of values found in the text
-- Always split value and unit (e.g. "500ns" → value: 500, unit: "ns")
-- Take in consideration values written in letter (e.g. "one hundred"), and transform it
-    to a numeric value
+- No markdown, no explanation
+- Use only standard time units: ps (picoseconds), ns (nanoseconds), μs (microseconds), ms (milliseconds), s (seconds)
+- Always separate value and unit (e.g. "500ns" → value: 500, unit: "ns")
+- Take in consideration values written in letter (e.g. "one hundred"), and convert it to numeric value
 - If the simulation time is an interval, separate each simulation time in the interval.
-- If the value is missing only take in consideration the unit
-- If the unit is missing or is not a time unit define the normalized unit to "None"
-- If the numerical value is missing define the normalized value to "None"
+- If the unit is missing or the unit is not a time unit, output the normalized unit to "None"
+- If the numerical value is missing, output the normalized value to "None"
  """
 
 
@@ -103,10 +100,29 @@ def load_simulation_times(ground_truth_file: Path) -> list:
     return times
 
 
+# We load the prompt text from the file
+def load_prompt_text(prompt_file_path):
+    """Extract the prompt from the txt prompt file.
+
+    Parameters
+    ----------
+        prompt_file_path(Path): Path to the file containing the prompt
+
+    Returns
+    -------
+            (str): content of the prompt file
+    """
+    content = ""
+    content = Path(prompt_file_path).read_text()
+    return content
+
+
 # We give to a chosen model a normalisation time, the model is called via an
 # openrouter key and use instructor to ensure the structured output of the llm.
 # We retrieve the time and the cost of the normalisation
-def normalize_simulation_time(raw_simulation_time: str, model_name: str):
+def normalize_simulation_time(
+    raw_simulation_time: str, model_name: str, prompt_file_path: Path
+):
     """Normalize the units in the simulation time text to standard units.
 
     Parameters
@@ -126,6 +142,7 @@ def normalize_simulation_time(raw_simulation_time: str, model_name: str):
     )
 
     logger.info(f"{model_name.replace('-', '_')} | Normalizing: {raw_simulation_time}")
+    prompt = load_prompt_text(prompt_file_path)
 
     try:
         start_time = time.perf_counter()
@@ -137,7 +154,7 @@ def normalize_simulation_time(raw_simulation_time: str, model_name: str):
                 messages=[
                     {
                         "role": "system",
-                        "content": f"{PROMPT}",
+                        "content": f"{prompt}",
                     },
                     {
                         "role": "user",
@@ -166,7 +183,9 @@ def normalize_simulation_time(raw_simulation_time: str, model_name: str):
 
 
 # We format the output of the normalized simulation time in a json format.
-def format_norm_simulation_time(raw_simulation_time: list, model_name: str) -> dict:
+def format_norm_simulation_time(
+    raw_simulation_time: list, model_name: str, prompt_file_path: Path
+) -> dict:
     """Format the normalized time to a JSON format with the normalized values.
 
     Parameters
@@ -185,7 +204,9 @@ def format_norm_simulation_time(raw_simulation_time: list, model_name: str) -> d
     normalisation_output = {}
     # We loop on the list of simulation times and normalize each entity
     for simulation_time in raw_simulation_time:
-        normalization_result = normalize_simulation_time(simulation_time, model_name)
+        normalization_result = normalize_simulation_time(
+            simulation_time, model_name, prompt_file_path
+        )
         if normalization_result:
             # We put the normalized simulation times in a json format
             simulation_time_normalized = json.loads(normalization_result[0])
@@ -214,6 +235,7 @@ def normalize_all_entities(
     raw_simulation_times: list,
     model: str,
     ground_truth_dict: dict,
+    prompt_file_path: Path,
 ) -> tuple[int, int, int]:
     """
     Normalize all the simulation times.
@@ -241,7 +263,9 @@ def normalize_all_entities(
             f"{model.replace('-', '_')} | entity: {entity_number} / {len(raw_simulation_times)}"
         )
         normalisation_result = normalize_simulation_time(
-            raw_simulation_time, model_name=model
+            raw_simulation_time,
+            model_name=model,
+            prompt_file_path=prompt_file_path,
         )
         if normalisation_result:
             if normalisation_result[0]:
@@ -296,7 +320,7 @@ def normalize_all_entities(
     return normalised_entity, normalisation_time, normalisation_cost
 
 
-def evaluate_all_models(raw_simulation_times: list, ground_truth_file: Path, runs: int):
+def evaluate_all_models(raw_simulation_times: list, ground_truth_file: Path, runs: int, prompt_file_path: Path):
     """Evaluate all models and save results to TSV file.
 
     Parameters
@@ -333,7 +357,7 @@ def evaluate_all_models(raw_simulation_times: list, ground_truth_file: Path, run
             logger.info(f"{model.replace('-', '_')} | Run {run + 1}/{runs}")
 
             normalisation_results = normalize_all_entities(
-                raw_simulation_times, model, ground_truth_dict
+                raw_simulation_times, model, ground_truth_dict, prompt_file_path
             )
 
             normalised_entity = normalisation_results[0]
@@ -356,13 +380,15 @@ def evaluate_all_models(raw_simulation_times: list, ground_truth_file: Path, run
                 "model_name": model,
                 "accuracy_percentage": round(accuracy),
                 "inference_time_by_entity": round(normalisation_time_by_entity),
-                "inference_cost_by_entity_USD": round(total_normalisation_cost),
+                "inference_cost_by_entity_USD": round(
+                    total_normalisation_cost / (len(raw_simulation_times) * runs)
+                ),
             }
         )
 
         logger.info(
             f"\n {model.replace('-', '_')} : Accuracy = {accuracy:.1f}% Time = {total_normalisation_time}"
-            f" Cost = {total_normalisation_cost}\n"
+            f" Cost = {total_normalisation_cost / (len(raw_simulation_times) * runs)}\n"
         )
 
     return results
@@ -372,6 +398,7 @@ def save_evaluation_results_in_tsv(
     model_evaluation_file: Path,
     raw_simulation_times: list,
     ground_truth_file: Path,
+    prompt_file_path: Path,
     runs: int,
 ):
     """Save the evaluation results of all models in a TSV file.
@@ -385,7 +412,7 @@ def save_evaluation_results_in_tsv(
     runs (int): The number of runs to perform for each model to calculate the
     average accuracy.
     """
-    results = evaluate_all_models(raw_simulation_times, ground_truth_file, runs)
+    results = evaluate_all_models(raw_simulation_times, ground_truth_file, runs, prompt_file_path)
     with open(model_evaluation_file, "w") as f:
         f.write(
             "model_name\taccuracy_percentage\tnormalisation_times_sec\tnormalisation_cost\n"
@@ -433,7 +460,7 @@ def main_normalizing_simulation_times(
     # normalisation_output = format_norm_simulation_time(times, model_name=MODEL[0])
     # save_norm_simulation_results(normalisation_output, normalized_simulation_time)
     save_evaluation_results_in_tsv(
-        model_evaluation_file, times, ground_truth_file, runs
+        model_evaluation_file, times, ground_truth_file, Path("PROMPT"), runs
     )
 
 
