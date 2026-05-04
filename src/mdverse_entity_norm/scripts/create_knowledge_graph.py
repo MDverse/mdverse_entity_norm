@@ -27,9 +27,19 @@ def get_extracted_molecules(
         Filtered dataframe containing molecule entities
     """
     entity_file = pd.read_csv(entities_path, sep="\t")
-    entity_file = entity_file[entity_file["category"] == "MOL"]
-    working_files = entity_file["json_file"].unique()[:number_of_datasets]
-    entity_file = entity_file[entity_file["json_file"].isin(working_files)]
+    # entity_file = entity_file[entity_file["category"] == "MOL"]
+    # working_files = entity_file["json_file"].unique()[:number_of_datasets]
+    # entity_file = entity_file[entity_file["json_file"].isin(working_files)]
+    json_files = [
+        "zenodo_1293813.json",
+        "zenodo_1488094.json",
+        "zenodo_247386.json",
+        "zenodo_5060102.json",
+        "zenodo_7007107.json",
+        "zenodo_34415.json",
+        "zenodo_1219494.json",
+    ]
+    entity_file = entity_file[entity_file["json_file"].isin(json_files)]
     entity_file = entity_file.drop_duplicates(subset=["json_file", "entity"])
     return entity_file
 
@@ -51,12 +61,11 @@ def get_grounded_molecules(grounded_molecule_path: Path) -> pd.DataFrame:
     grounded_molecule_results_known = grounded_entity_file[
         grounded_entity_file["MOL_TYPE"] != "Unknown"
     ]
-    logger.info(f"length after grounding :{len(grounded_molecule_results_known)} ")
     return grounded_molecule_results_known
 
 
 def create_extracted_molecules_entities(entity_file: pd.DataFrame) -> list:
-    """Create a dictionary with dataset entities and their relationships.
+    """Create a list of dataset node labels.
 
     Parameters
     ----------
@@ -65,8 +74,8 @@ def create_extracted_molecules_entities(entity_file: pd.DataFrame) -> list:
 
     Returns
     -------
-    dict
-        Dictionary with entities (dataset) and relationships (dataset -> molecule)
+    list
+        List of cleaned dataset labels
     """
     data_set_entities = []
 
@@ -82,13 +91,29 @@ def create_extracted_molecules_entities(entity_file: pd.DataFrame) -> list:
 def create_extracted_molecules_relationships(
     entity_file: pd.DataFrame, grounded_molecule_results_known: pd.DataFrame
 ) -> list:
+    """Create edges between dataset nodes and molecule nodes.
+
+    Parameters
+    ----------
+    entity_file : pd.DataFrame
+        Contains the extracted molecules from each dataset
+    grounded_molecule_results_known : pd.DataFrame
+        Contains the grounded molecules
+
+    Returns
+    -------
+    list
+        List of dicts with 'source' (dataset) and 'target' (molecule)
+    """
     relationships = []
+    known_molecules = set(grounded_molecule_results_known["MOL"])
+
     for entity_name, json_file in zip(
         entity_file["entity"],
         entity_file["json_file"],
         strict=True,
     ):
-        if entity_name in list(grounded_molecule_results_known["MOL"]):
+        if entity_name in known_molecules:
             clean_json_file = json_file.replace("zenodo_", "zenodo\n")
             clean_json_file = clean_json_file.replace("figshare_", "figshare\n")
             clean_json_file = clean_json_file.strip(".json")
@@ -100,78 +125,126 @@ def create_grounded_molecules_entities(
     grounded_molecule_results_known: pd.DataFrame,
     extracted_molecule_relationships: list,
 ) -> list:
-    grounded_molecule_entities = []
+    """Return the subset of grounded molecules that appear in the extracted relationships.
+
+    Parameters
+    ----------
+    grounded_molecule_results_known : pd.DataFrame
+        Contains the grounded molecules
+    extracted_molecule_relationships : list
+        Edges between datasets and molecules
+
+    Returns
+    -------
+    list
+        Molecule names present in both sources
+    """
     extracted_molecules = []
+    for i in range(len(extracted_molecule_relationships)):
+        extracted_molecules.append(extracted_molecule_relationships[i]["target"])
 
-    for relationship in extracted_molecule_relationships:
-        extracted_molecules.append(relationship["target"])
+    grounded_molecule_entities = []
+    mol_list = list(grounded_molecule_results_known["MOL"])
+    for i in range(len(mol_list)):
+        if mol_list[i] in extracted_molecules:
+            grounded_molecule_entities.append(mol_list[i])
 
-    for molecule in grounded_molecule_results_known["MOL"]:
-        if molecule in extracted_molecules:
-            grounded_molecule_entities.append(molecule)
     return grounded_molecule_entities
 
 
 def create_grounded_molecule_relationship(
     grounded_molecule_results_known: pd.DataFrame, grounded_molecule_entities: list
-):
-    relationships = []
+) -> list:
+    """Create edges between molecule nodes and their grounding IDs.
 
-    for entity_name, grounded_molecule_name, grounded_molecule_id in zip(
-        grounded_molecule_entities,
-        grounded_molecule_results_known["MOL"],
-        grounded_molecule_results_known["MOL_ID"],
-        strict=False,
-    ):
-        if entity_name == grounded_molecule_name:
-            relationships.append(
-                {"source": entity_name, "target": grounded_molecule_id}
-            )
+    Parameters
+    ----------
+    grounded_molecule_results_known : pd.DataFrame
+        Contains the grounded molecules with their IDs
+    grounded_molecule_entities : list
+        Molecule names to include in the graph
+
+    Returns
+    -------
+    list
+        List of dicts with 'source' (molecule name) and 'target' (grounding ID)
+    """
+    filtered = grounded_molecule_results_known[
+        grounded_molecule_results_known["MOL"].isin(grounded_molecule_entities)
+    ].drop_duplicates(subset=["MOL"])
+
+    relationships = []
+    for num, row in filtered.iterrows():
+        logger.info(row)
+        relationships.append(
+            {"source": row["MOL"], "target": row["MOL_TYPE"] + "\n" + row["MOL_ID"]}
+        )
+
+    logger.info(f"RELATIONSHIPS = {relationships}")
     return relationships
 
 
 def create_knowledge_graph(
-    extracted_molecules_entites: list,
+    extracted_molecules_entities: list,
     extracted_molecules_relationships: list,
     grounded_molecules_relationships: list,
     grounded_molecules_entities: list,
     grounding: bool,
 ) -> nx.Graph:
+    """Build the NetworkX knowledge graph.
 
-    extracted_molecules = {}
-    extracted_molecules["entities"] = extracted_molecules_entites
-    extracted_molecules["relationships"] = extracted_molecules_relationships
-    grounded_molecules = {}
-    grounded_molecules["entities"] = grounded_molecules_entities
-    grounded_molecules["relationship"] = grounded_molecules_relationships
+    Parameters
+    ----------
+    extracted_molecules_entities : list
+        Dataset node labels
+    extracted_molecules_relationships : list
+        Edges between datasets and molecules
+    grounded_molecules_relationships : list
+        Edges between molecules and grounding IDs
+    grounded_molecules_entities : list
+        Molecule node labels
+    grounding : bool
+        Whether to include grounding ID nodes and edges
 
-    grounding_id = []
-    for relationship in grounded_molecules_relationships:
-        grounding_id.append(relationship["target"])
+    Returns
+    -------
+    nx.Graph
+        The assembled knowledge graph
+    """
+    grounding_ids = []
+    for rel in grounded_molecules_relationships:
+        grounding_ids.append(rel["target"])
 
     knowledge_graph = nx.Graph()
-    logger.info(f"Adding dataset nodes : {extracted_molecules['entities']}")
-    knowledge_graph.add_nodes_from(extracted_molecules["entities"], color="#f8ed62")
-    logger.info(f"Adding molecules nodes : {grounded_molecules['entities']}")
-    knowledge_graph.add_nodes_from(grounded_molecules["entities"], color="skyblue")
+    knowledge_graph.add_nodes_from(extracted_molecules_entities, color="#f8ed62")
+    knowledge_graph.add_nodes_from(grounded_molecules_entities, color="skyblue")
 
-    logger.info(
-        f"extracted molecule relationships : {extracted_molecules_relationships}"
-    )
-    for relationship in extracted_molecules["relationships"]:
+    for relationship in extracted_molecules_relationships:
         knowledge_graph.add_edge(relationship["source"], relationship["target"])
 
     if grounding:
-        knowledge_graph.add_nodes_from(grounding_id, color="#ffbaba")
+        knowledge_graph.add_nodes_from(grounding_ids, color="#ffbaba")
         for relationship in grounded_molecules_relationships:
             knowledge_graph.add_edge(relationship["source"], relationship["target"])
 
     return knowledge_graph
 
 
-def get_molecule_label(grounded_molecules_entities):
+def get_molecule_label(molecule_entities: list) -> dict:
+    """Build a truncated display-label dict for molecule nodes.
+
+    Parameters
+    ----------
+    molecule_entities : list
+        List of molecule names
+
+    Returns
+    -------
+    dict
+        Mapping from molecule name to a (possibly truncated) display label
+    """
     label_dict = {}
-    for molecule_name in grounded_molecules_entities:
+    for molecule_name in molecule_entities:
         if len(molecule_name) > 6:
             label_dict[molecule_name] = molecule_name[:6] + "..."
         else:
@@ -180,7 +253,9 @@ def get_molecule_label(grounded_molecules_entities):
 
 
 def visualize_graph(
-    knowledge_graph: nx.Graph, extracted_molecules_entites: list, output_path: Path
+    knowledge_graph: nx.Graph,
+    grounded_molecules_entities: list,
+    output_path: Path,
 ) -> None:
     """Draw the knowledge graph and save it to a file.
 
@@ -188,6 +263,8 @@ def visualize_graph(
     ----------
     knowledge_graph : nx.Graph
         The graph to visualize
+    grounded_molecules_entities : list
+        Molecule node names used to build truncated labels
     output_path : Path
         Path where the image will be saved
     """
@@ -200,8 +277,15 @@ def visualize_graph(
         for node in knowledge_graph.nodes
     ]
 
-    mapping = get_molecule_label(extracted_molecules_entites)
-    knowledge_graph = nx.relabel_nodes(knowledge_graph, mapping)
+    molecule_label_dict = get_molecule_label(grounded_molecules_entities)
+    labels = {}
+    node_list = list(knowledge_graph.nodes)
+    for i in range(len(node_list)):
+        if node_list[i] in molecule_label_dict:
+            labels[node_list[i]] = molecule_label_dict[node_list[i]]
+        else:
+            labels[node_list[i]] = node_list[i]
+
     pos = nx.spring_layout(knowledge_graph, k=0.5, iterations=50)
 
     fig, ax = plt.subplots(figsize=(20, 16))
@@ -209,6 +293,7 @@ def visualize_graph(
         knowledge_graph,
         pos,
         ax=ax,
+        labels=labels,
         with_labels=True,
         node_color=node_colors,
         node_size=1500,
@@ -239,30 +324,33 @@ def print_graph_stats(knowledge_graph: nx.Graph) -> None:
     "--extracted_entities_path",
     default="data/entities.tsv",
     type=click.Path(file_okay=True, path_type=Path),
-    help="Path to the tsv output file containing the extracted entities",
+    help="Path to the TSV file containing the extracted entities",
 )
 @click.option(
     "--grounded_molecules_path",
     default="results/ground_molecule/grounded_molecules.tsv",
     type=click.Path(file_okay=True, path_type=Path),
-    help="Path to the tsv output file containing the grounfded entities",
+    help="Path to the TSV file containing the grounded molecules",
 )
 @click.option(
     "--number_of_datasets",
     default=10,
     type=int,
-    help="number of datasets in the graphe",
+    help="Number of datasets in the graph",
 )
-def main_create_knoledge_graphes(
+def main_create_knowledge_graphs(
     extracted_entities_path, grounded_molecules_path, number_of_datasets
 ):
-    """Create and save the knowledge graphes, display the graphe statistics.
+    """Create and save the knowledge graphs, and display graph statistics.
 
     Parameters
     ----------
-    extracted_entities_path(Path): path to the extracted entities
-    grounded_molecules_path(Path): path to the grounded molecules file
-    number_of_dataset(int): number of dataset in the graph
+    extracted_entities_path : Path
+        Path to the extracted entities file
+    grounded_molecules_path : Path
+        Path to the grounded molecules file
+    number_of_datasets : int
+        Number of datasets in the graph
     """
     extracted_entity_file = get_extracted_molecules(
         extracted_entities_path, number_of_datasets
@@ -277,7 +365,6 @@ def main_create_knoledge_graphes(
     grounded_molecule_entities = create_grounded_molecules_entities(
         grounded_entity_file, extracted_entity_file_relationship
     )
-    logger.info(f"grounded_molecule_entities : {grounded_molecule_entities}")
     grounded_entity_file_relationships = create_grounded_molecule_relationship(
         grounded_entity_file, grounded_molecule_entities
     )
@@ -296,10 +383,12 @@ def main_create_knoledge_graphes(
         grounded_molecule_entities,
         grounding=True,
     )
-    print("kowledge graph")
+
+    print("Knowledge graph")
     print_graph_stats(knowledge_graph)
-    print("grounded knowledge graph")
+    print("Grounded knowledge graph")
     print_graph_stats(grounded_knowledge_graph)
+
     visualize_graph(
         knowledge_graph,
         grounded_molecule_entities,
@@ -313,4 +402,4 @@ def main_create_knoledge_graphes(
 
 
 if __name__ == "__main__":
-    main_create_knoledge_graphes()
+    main_create_knowledge_graphs()
