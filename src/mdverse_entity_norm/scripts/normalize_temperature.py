@@ -5,6 +5,8 @@ This module provides regular expression matching operations.
 
 import re
 
+import matplotlib.pyplot as plt
+import pandas as pd
 from loguru import logger
 
 
@@ -81,16 +83,48 @@ def create_norm_temp_file(raw_temp_file: str, norm_temp_file: str):
 
     """
     with open(raw_temp_file) as file_1, open(norm_temp_file, "w") as f2:
-        f2.write("raw temperature\tnormalised temperature\tnormalised unit\n")
+        f2.write(
+            "raw temperature\tnormalised_temperature\tnormalised_unit\tnormalized_result\n"
+        )
 
         for line in file_1:
             raw_temp = line.strip()
             temperature_value, temperature_unit = norm_temp(raw_temp)
 
             if temperature_value is not None:
-                f2.write(f"{raw_temp}\t{temperature_value}\t{temperature_unit}\n")
+                f2.write(
+                    f"{raw_temp}\t{temperature_value}\t{temperature_unit}\t{str(temperature_value) + temperature_unit}\n"
+                )
             else:
                 f2.write(f"{raw_temp}\tERROR\tERROR\n")
+
+
+def visualize_tempreature_normalisation_effect(normalisation_results_tsv_files):
+
+    normalisationresults = pd.read_csv(normalisation_results_tsv_files, sep="\t")
+
+    raw_count = normalisationresults["raw temperature"].shape[0]
+
+    normalisationresults["normalized_full"] = str(
+        normalisationresults["normalised_temperature"]
+    ) + str(normalisationresults["normalised_unit"])
+    logger.info(normalisationresults["normalized_full"])
+
+    unique_normalized = normalisationresults["normalized_full"].unique()
+    normalized_count = len(unique_normalized)
+
+    print("Raw count:", raw_count)
+    print("Unique normalized count:", normalized_count)
+
+    labels = ["Raw values", "Normalized unique values"]
+    counts = [raw_count, normalized_count]
+
+    plt.bar(labels, counts)
+    plt.xlabel("Category")
+    plt.ylabel("Number of values")
+    plt.title("Raw vs Normalized Temperature Count")
+
+    plt.savefig("results/normalisation_effect.png")
 
 
 if __name__ == "__main__":
@@ -110,3 +144,4 @@ if __name__ == "__main__":
         print(f"norm_temp('{temperature}') = {norm_temp(temperature)}")
 
     create_norm_temp_file("data/TEMP.txt", "results/norm_temp.tsv")
+    visualize_tempreature_normalisation_effect("results/norm_temp.tsv")
