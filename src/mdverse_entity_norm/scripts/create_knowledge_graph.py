@@ -1,5 +1,6 @@
 """Script to create knowledge graphs."""
 
+import sys
 from pathlib import Path
 
 import click
@@ -8,7 +9,13 @@ import networkx as nx
 import pandas as pd
 from loguru import logger
 
-IONS = ["na", "nacl", "na+", "k+", "cl-", "cl", "k", "sol", "ca", "cacl2"]
+IONS = {
+    "na",
+    "na+",
+    "cl",
+    "cl-",
+    "nacl",
+}
 
 
 def get_extracted_molecules(
@@ -30,18 +37,8 @@ def get_extracted_molecules(
     """
     entity_file = pd.read_csv(entities_path, sep="\t")
     entity_file = entity_file[entity_file["category"] == "MOL"]
-    working_files = entity_file["json_file"].unique()[:]
+    working_files = entity_file["json_file"].unique()[:number_of_datasets]
     entity_file = entity_file[entity_file["json_file"].isin(working_files)]
-    # json_files = [
-    #     "zenodo_1293813.json",
-    #     "zenodo_1488094.json",
-    #     "zenodo_247386.json",
-    #     "zenodo_5060102.json",
-    #     "zenodo_7007107.json",
-    #     "zenodo_34415.json",
-    #     "zenodo_1219494.json",
-    # ]
-    # entity_file = entity_file[entity_file["json_file"].isin(json_files)]
     entity_file = entity_file.drop_duplicates(subset=["json_file", "entity"])
     return entity_file
 
@@ -179,13 +176,10 @@ def create_grounded_molecule_relationship(
     ].drop_duplicates(subset=["MOL"])
 
     relationships = []
-    for num, row in filtered.iterrows():
-        logger.info(row)
+    for _, row in filtered.iterrows():
         relationships.append(
             {"source": row["MOL"], "target": row["MOL_TYPE"] + "\n" + row["MOL_ID"]}
         )
-
-    logger.info(f"RELATIONSHIPS = {relationships}")
     return relationships
 
 
@@ -261,6 +255,7 @@ def visualize_graph(
     knowledge_graph: nx.Graph,
     grounded_molecules_entities: list,
     output_path: Path,
+    highlight_edges,
 ) -> None:
     """Draw the knowledge graph and save it to a file.
 
@@ -291,7 +286,7 @@ def visualize_graph(
         else:
             labels[node_list[i]] = node_list[i]
 
-    pos = nx.spring_layout(knowledge_graph, k=0.5, iterations=50)
+    pos = nx.spring_layout(knowledge_graph, k=0.1, iterations=50)
 
     fig, ax = plt.subplots(figsize=(20, 16))
     nx.draw(
@@ -308,6 +303,14 @@ def visualize_graph(
         linewidths=2.5,
         alpha=1,
     )
+    if highlight_edges:
+        nx.draw_networkx_edges(
+            knowledge_graph,
+            pos,
+            edgelist=(highlight_edges),
+            edge_color="red",
+            width=3,
+        )
     ax.set_title("Knowledge Graph", fontsize=14, fontweight="bold")
 
     fig.savefig(output_path)
@@ -318,10 +321,13 @@ def visualize_graph(
 def print_graph_stats(knowledge_graph: nx.Graph) -> None:
     """Print basic statistics about the graph."""
     num_components = nx.number_connected_components(knowledge_graph)
-    print("Number of nodes:", knowledge_graph.number_of_nodes())
-    print("Density:", nx.density(knowledge_graph))
-    print("Isolated nodes:", nx.number_of_isolates(knowledge_graph))
-    print(f"Number of disjoint subgraphs: {num_components}")
+    logger.info(f"Number of nodes: {knowledge_graph.number_of_nodes()}")
+    logger.info(f"Density: {nx.density(knowledge_graph)}")
+    logger.info(f"Number of edges: {knowledge_graph.number_of_edges()}")
+    logger.info(f"Number of disjoint subgraphs: {num_components}")
+    logger.info("CONNECTED COMPONENT:")
+    for i, component in enumerate(list(nx.connected_components(knowledge_graph))):
+        logger.info(f"Connected components {i + 1}:{component}")
 
 
 @click.command()
@@ -343,8 +349,14 @@ def print_graph_stats(knowledge_graph: nx.Graph) -> None:
     type=int,
     help="Number of datasets in the graph",
 )
+@click.option(
+    "--cheat",
+    default=False,
+    type=bool,
+    help="Get molecule that have the same grounding",
+)
 def main_create_knowledge_graphs(
-    extracted_entities_path, grounded_molecules_path, number_of_datasets
+    extracted_entities_path, grounded_molecules_path, number_of_datasets, cheat
 ):
     """Create and save the knowledge graphs, and display graph statistics.
 
@@ -388,23 +400,33 @@ def main_create_knowledge_graphs(
         grounded_molecule_entities,
         grounding=True,
     )
+    new_edges = (grounded_knowledge_graph.edges()) - (knowledge_graph.edges())
 
-    print("Knowledge graph")
+    logger.info("KNOWLEDGE GRAPH")
     print_graph_stats(knowledge_graph)
-    print("Grounded knowledge graph")
+    logger.info("GROUNDED KNOWLEDGE GRAPH")
     print_graph_stats(grounded_knowledge_graph)
 
     visualize_graph(
         knowledge_graph,
         grounded_molecule_entities,
         output_path=Path("results/ground_molecule/knowledge_graph.png"),
+        highlight_edges=None,
     )
     visualize_graph(
         grounded_knowledge_graph,
         grounded_molecule_entities,
         output_path=Path("results/ground_molecule/knowledge_graph_grounded.png"),
+        highlight_edges=new_edges,
     )
 
 
 if __name__ == "__main__":
+    logger.remove()
+    logger_format = (
+        "{time:YYYY-MM-DD HH:mm:ss} "
+        "| <level>{level:<8}</level> "
+        "| <level>{message}</level>"
+    )
+    logger.add(sys.stdout, format=logger_format, level="DEBUG")
     main_create_knowledge_graphs()
