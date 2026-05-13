@@ -1,99 +1,88 @@
+import sys
+
 import pandas as pd
+from loguru import logger
 
 
-def load_dataset(file_path):
-    """
-    Load a TSV file into a pandas DataFrame.
+def check_argument():
+    if len(sys.argv) < 2:
+        print("Usage: uv run script.py <logfile>")
+        sys.exit(1)
 
-    Parameters
-    ----------
-        file_path (str): Path to the input TSV file.
+    file_name = sys.argv[1]
 
-    Returns
-    -------
-        pd.DataFrame: Loaded dataset with columns [model, input, result].
-    """
-    dataframe = pd.read_csv(
-        file_path, sep="\t", header=None, names=["model", "input", "result"]
-    )
-    return dataframe
+    with open(file_name) as f:
+        lines = f.readlines()
+
+    return lines
 
 
-def compute_occurrences(dataframe):
-    """
-    Count occurrences of each (model, input, result) combination.
+def extract_errors(lines):
+    results = []
+    logger.info("Extarcting input and output")
+    for i in range(len(lines)):
+        if "failed" in lines[i]:
+            context = lines[max(0, i - 2) : i + 1]
 
-    Parameters
-    ----------
-        dataframe (pd.DataFrame): Input dataset.
+            model = ""
+            input_val = ""
+            output = ""
 
-    Returns
-    -------
-        pd.DataFrame: DataFrame with columns [model, input, result, count].
-    """
-    occurrence_counts = dataframe.value_counts().reset_index()
-    occurrence_counts.columns = ["model", "input", "result", "count"]
-    return occurrence_counts
+            for line in context:
+                if "Normalizing" in line:
+                    parts_pipe = line.split("|")
+                    if len(parts_pipe) > 2:
+                        model = parts_pipe[2].strip()
 
+                    parts_colon = line.split(":")
+                    if len(parts_colon) > 3:
+                        input_val = parts_colon[3].strip()
 
-def add_model_totals(occurrence_dataframe):
-    """
-    Add a column with the total count per model.
+                if "SimulationTime" in line:
+                    parts_colon = line.split(":")
+                    if len(parts_colon) > 3:
+                        output = parts_colon[3].strip()
 
-    Parameters
-    ----------
-        occurrence_dataframe (pd.DataFrame): Data with counts per row.
+                if "failed after" in line:
+                    output = "failed after 3 attempts"
 
-    Returns
-    -------
-        pd.DataFrame: DataFrame with an additional 'total' column.
-    """
-    occurrence_dataframe["total"] = occurrence_dataframe.groupby("model")[
-        "count"
-    ].transform("sum")
-    return occurrence_dataframe
+            results.append([model, input_val, output])
 
-
-def sort_results(occurrence_dataframe):
-    """
-    Sort results by total count and individual count.
-
-    Parameters
-    ----------
-        occurrence_dataframe (pd.DataFrame): Data with counts and totals.
-
-    Returns
-    -------
-        pd.DataFrame: Sorted DataFrame.
-    """
-    sorted_dataframe = occurrence_dataframe.sort_values(
-        by=["total", "count"], ascending=False
-    )
-    return sorted_dataframe
+    return results
 
 
-def save_to_tsv(dataframe, output_path):
-    """
-    Save a DataFrame to a TSV file.
+def compute_occurrences(df):
+    counts = df.value_counts().reset_index()
+    counts.columns = ["model", "input", "result", "count"]
+    return counts
 
-    Parameters
-    ----------
-        dataframe (pd.DataFrame): Data to save.
-        output_path (str): Output file path.
-    """
-    dataframe.to_csv(output_path, sep="\t", index=False)
+
+def add_model_totals(df):
+    df["total"] = df.groupby("model")["count"].transform("sum")
+    return df
+
+
+def sort_results(df):
+    return df.sort_values(by=["total", "count"], ascending=False)
+
+
+def save_to_tsv(df, output_path="results/norm_simu_times/llm_error_count.tsv"):
+    df.to_csv(output_path, sep="\t", index=False)
 
 
 def main():
-    input_file_path = "../llmerr.tsv"
-    output_file_path = "output.tsv"
+    lines = check_argument()
 
-    dataset = load_dataset(input_file_path)
-    occurrences = compute_occurrences(dataset)
-    occurrences_with_totals = add_model_totals(occurrences)
-    sorted_results = sort_results(occurrences_with_totals)
+    data = extract_errors(lines)
+    df = pd.DataFrame(data, columns=["model", "input", "result"])
 
-    save_to_tsv(sorted_results, output_file_path)
+    occurrences = compute_occurrences(df)
+    occurrences = add_model_totals(occurrences)
+    sorted_df = sort_results(occurrences)
+    sorted_df = sorted_df[["total", "count", "model", "input", "result"]]
+
+    print(sorted_df)
+    save_to_tsv(sorted_df)
 
 
 if __name__ == "__main__":
