@@ -84,7 +84,7 @@ def create_norm_temp_file(raw_temp_file: str, norm_temp_file: str):
     """
     with open(raw_temp_file) as file_1, open(norm_temp_file, "w") as f2:
         f2.write(
-            "raw temperature\tnormalised_temperature\tnormalised_unit\tnormalized_result\n"
+            "raw_temperature\tnormalised_temperature\tnormalised_unit\tnormalized_result\n"
         )
 
         for line in file_1:
@@ -99,32 +99,53 @@ def create_norm_temp_file(raw_temp_file: str, norm_temp_file: str):
                 f2.write(f"{raw_temp}\tERROR\tERROR\n")
 
 
-def visualize_tempreature_normalisation_effect(normalisation_results_tsv_files):
+def visualize_temperature_normalisation_effect(file_path):
 
-    normalisationresults = pd.read_csv(normalisation_results_tsv_files, sep="\t")
+    temp_normalisation_results = pd.read_csv(file_path, sep="\t")
 
-    raw_count = normalisationresults["raw temperature"].shape[0]
+    counts = temp_normalisation_results["normalized_result"].value_counts().sort_index()
 
-    normalisationresults["normalized_full"] = str(
-        normalisationresults["normalised_temperature"]
-    ) + str(normalisationresults["normalised_unit"])
-    logger.info(normalisationresults["normalized_full"])
+    labels = counts.index
+    before = counts.values
+    after = [1] * len(labels)
 
-    unique_normalized = normalisationresults["normalized_full"].unique()
-    normalized_count = len(unique_normalized)
+    x = range(len(labels))
+    plt.figure(figsize=(14, 5))
+    plt.bar(x, before, width=0.4, label="Before Grounding")
 
-    print("Raw count:", raw_count)
-    print("Unique normalized count:", normalized_count)
+    x2 = []
+    for i in x:
+        x2.append(i + 0.4)
+    plt.bar(x2, after, width=0.4, label="After Grounding")
 
-    labels = ["Raw values", "Normalized unique values"]
-    counts = [raw_count, normalized_count]
+    plt.xticks(x, labels, rotation=90)
 
-    plt.bar(labels, counts)
-    plt.xlabel("Category")
-    plt.ylabel("Number of values")
-    plt.title("Raw vs Normalized Temperature Count")
+    plt.title("Temperature Normalisation Effect")
+    plt.ylabel("Occurrence")
+    plt.legend()
 
-    plt.savefig("results/normalisation_effect.png")
+    plt.tight_layout()
+    plt.savefig("results/norm_temp/normalisation_effect.png")
+
+
+def visualize_entity_count(file_path):
+
+    temp_normalisation_results = pd.read_csv(file_path, sep="\t")
+
+    before = len(temp_normalisation_results["raw_temperature"].unique())
+    after = len(temp_normalisation_results["normalized_result"].unique())
+
+    plt.figure(figsize=(6, 5))
+
+    labels = ["Before Grounding", "After Grounding"]
+    values = [before, after]
+
+    plt.bar(labels, values)
+
+    plt.ylabel("Number of unique temperatures")
+    plt.title("Unique Temperature Count")
+    plt.tight_layout()
+    plt.savefig("results/norm_temp/entity_count.png")
 
 
 if __name__ == "__main__":
@@ -144,4 +165,5 @@ if __name__ == "__main__":
         print(f"norm_temp('{temperature}') = {norm_temp(temperature)}")
 
     create_norm_temp_file("data/TEMP.txt", "results/norm_temp.tsv")
-    visualize_tempreature_normalisation_effect("results/norm_temp.tsv")
+    visualize_temperature_normalisation_effect("results/norm_temp.tsv")
+    visualize_entity_count("results/norm_temp.tsv")
