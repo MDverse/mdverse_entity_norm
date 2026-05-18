@@ -6,7 +6,8 @@
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_000132",
-        "family": "charmm"
+        "family": "charmm",
+        "category": "force field"
         },
         {"name": "Charmm 36m",
         "synonyms": ["charmm36m","c36m"],
@@ -14,6 +15,7 @@
         "molecular_type": null,
         "ontology_link": null,
         "family": "charmm",
+        "category": "force field",
         "publication": "https://doi.org/10.1038/nmeth.4067"
         },
         {"name": "CHARMM36-WYF",
@@ -22,6 +24,7 @@
         "molecular_type": null,
         "ontology_link": null,
         "family": "charmm",
+        "category": "force field",
         "publication": "https://doi.org/10.1021/acs.jctc.8b00839"
         },
         {"name": "Charmm TIP3P",
@@ -30,6 +33,7 @@
         "molecular_type": null,
         "ontology_link": null,
         "family": "charmm",
+        "category": "force field",
         "publication": null
         },
         {"name": "Charmm 27",
@@ -37,14 +41,16 @@
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_000753",
-        "family": "charmm"
+        "family": "charmm",
+        "category": "force field"
         },
         {"name": "Charmm 22*",
         "synonyms": ["charmm22*", "c22*"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": null,
-        "family": "charmm"
+        "family": "charmm",
+        "category": "force field"
         },
         {"name": "Charmm 22",
         "synonyms": ["charmm22"],
@@ -52,6 +58,7 @@
         "molecular_type": null,
         "ontology_link": null,
         "family": "charmm",
+        "category": "force field",
         "publication": "https://doi.org/10.1021/jp973084f"
         },
         {"name": "Charmm 36 CUFIX",
@@ -60,6 +67,7 @@
         "molecular_type": null,
         "ontology_link": null,
         "family": "charmm",
+        "category": "force field",
         "publication": "https://doi.org/10.1021/jp973084f"
         },
         {"name": "Charmm36 (v. june 2015)",
@@ -68,6 +76,7 @@
         "molecular_type": null,
         "ontology_link": null,
         "family": "charmm",
+        "category": "force field",
         "publication": "https://doi.org/10.1021/jp973084f"
         },
         {"name": "Charmm",
@@ -75,175 +84,200 @@
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_000248",
-        "family": "charmm"
+        "family": "charmm",
+        "category": "force field"
         },
         {"name": "TIP3P",
         "synonyms": ["tip3p", "charmmtip3p"],
         "resolution": "all-atom",
         "molecular_type": "water",
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_000022",
-        "family": "water"
+        "family": "water",
+        "category": "model"
         },
         {"name": "SPC/E",
         "synonyms": ["spc/e"],
         "resolution": "all-atom",
         "molecular_type": "water",
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_000771",
-        "family": "water"
+        "family": "water",
+        "category": "model"
         },
         {"name": "SPC",
         "synonyms": ["spc"],
         "resolution": "all-atom",
         "molecular_type": "water",
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_000769",
-        "family": "water"
+        "family": "water",
+        "category": "model"
         },
         {"name": "OPC",
         "synonyms": ["opc"],
         "resolution": "all-atom",
         "molecular_type": "water",
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_000031",
-        "family": "water"
+        "family": "water",
+        "category": "model"
         },
         {"name": "TIP4P/2005",
         "synonyms": ["tip4p/2005"],
         "resolution": "all-atom",
         "molecular_type": "water",
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_000766",
-        "family": "water"
+        "family": "water",
+        "category": "model"
         },
         {"name": "WatFour",
         "synonyms": ["watfour", "WT4"],
         "resolution": "coarse-grained",
         "molecular_type": "water",
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_001493",
-        "family": "water"
+        "family": "water",
+        "category": "model"
         },
         {"name": "Gromos 53a6",
         "synonyms": ["gromos53a6", "53a6"],
         "resolution": "all-atom",
         "molecular_type": "water",
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_001974",
-        "family": "gromos"
+        "family": "gromos",
+        "category": "force field"
         },
         {"name": "Gromos 54a7",
         "synonyms": ["gromos54a7", "54a7"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": null,
-        "family": "gromos"
+        "family": "gromos",
+        "category": "force field"
         },
         {"name": "Gromos 87",
         "synonyms": ["gromos87"],
         "resolution": "united-atom",
         "molecular_type": null,
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_001977",
-        "family": "gromos"
+        "family": "gromos",
+        "category": "force field"
         },
         {"name": "Gromos 43a1-s3",
         "synonyms": ["gromos43a1-s3","43a1-s3"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": null,
-        "family": "gromos"
+        "family": "gromos",
+        "category": "force field"
         },
         {"name": "Gromos 56a6carbo/carbo_r",
         "synonyms": ["gromos56a6carbo/carbo_r"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": null,
-        "family": "gromos"
+        "family": "gromos",
+        "category": "force field"
         },
         {"name": "AMBER ff03 w",
         "synonyms": ["amberff03w", "ff03w", "amber03w"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": null,
-        "family": "amber"
+        "family": "amber",
+        "category": "force field"
         },
         {"name": "AMBER ff03*",
         "synonyms": ["amberff03*", "ff03*"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": null,
-        "family": "amber"
+        "family": "amber",
+        "category": "force field"
         },
         {"name": "AMBER ff03",
         "synonyms": ["amberff03", "ff03", "amber03"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_001442",
-        "family": "amber"
+        "family": "amber",
+        "category": "force field"
         },
         {"name": "AMBER",
         "synonyms": ["amber"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": null,
-        "family": "amber"
+        "family": "amber",
+        "category": "force field"
         },
         {"name": "Amber ff14SB",
         "synonyms": ["amberff14SB", "amber14sb"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_000021",
-        "family": "amber"
+        "family": "amber",
+        "category": "force field"
         },
         {"name": "Amber ff15ipq",
         "synonyms": ["amberff15ipq"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": null,
-        "family": "amber"
+        "family": "amber",
+        "category": "force field"
         },
         {"name": "AMBER ff99SB-ILDN",
         "synonyms": ["amberff99sb-ildn", "amberff99sb-ildn", "ff99sb-ildn"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_000750",
-        "family": "amber"
+        "family": "amber",
+        "category": "force field"
         },
         {"name": "AMBER ff99SB-ILDN-phi",
         "synonyms": ["amberf99sb-ildn-phi","ff99sb-ildn-phi" ],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": null,
-        "family": "amber"
+        "family": "amber",
+        "category": "force field"
         },
         {"name": "AMBER ff99SB-ILDN-nmr",
         "synonyms": ["amberff99sb-ildn-nmr","ff99sb-ildn-nmr"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": null,
-        "family": "amber"
+        "family": "amber",
+        "category": "force field"
         },
         {"name": "AMBER ff99SB-ILDB",
         "synonyms": ["amber99sb-ildb"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": null,
-        "family": "amber"
+        "family": "amber",
+        "category": "force field"
         },
         {"name": "AMBER ff99sb*",
         "synonyms": ["amber99sb*","ff99sb"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": null,
-        "family": "amber"
+        "family": "amber",
+        "category": "force field"
         },
         {"name": "AMBER ff96",
         "synonyms": ["amber96","ff96"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_000745",
-        "family": "amber"
+        "family": "amber",
+        "category": "force field"
         },
         {"name": "amber10:extended huckel theory (eht)",
         "synonyms": ["amber10extendedhuckeltheory(eht)","amber10"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_000745",
-        "family": "amber"
+        "family": "amber",
+        "category": "force field"
         },
         {"name": "Lipid 21",
         "synonyms": ["lipid21"],
@@ -251,28 +285,32 @@
         "molecular_type": "lipid",
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_000018",
         "family": "amber",
-        "publication":"https://doi.org/10.1021/acs.jctc.1c01217"
+        "publication":"https://doi.org/10.1021/acs.jctc.1c01217",
+        "category": "force field"
         },
         {"name": "Slipids",
         "synonyms": ["slipids","sl"],
         "resolution": null,
         "molecular_type": "lipid",
         "ontology_link": null,
-        "family": null
+        "family": null,
+        "category": "force field"
         },
         {"name": "Berger",
         "synonyms": ["berger"],
         "resolution": null,
         "molecular_type": null,
         "ontology_link": null,
-        "family": null
+        "family": null,
+        "category": "force field"
         },
         {"name": "Trappe",
         "synonyms": ["trappe"],
         "resolution": null,
         "molecular_type": null,
         "ontology_link": null,
-        "family": null
+        "family": null,
+        "category": "force field"
         },
         {"name": "RSFF2",
         "synonyms": ["rsff2"],
@@ -280,7 +318,8 @@
         "molecular_type": null,
         "ontology_link": null,
         "family": null,
-        "publication": "https://doi.org/10.1021/jp5064676"
+        "publication": "https://doi.org/10.1021/jp5064676",
+        "category": "force field"
         },
         {"name": "RSFF1",
         "synonyms": ["rsff1"],
@@ -288,84 +327,96 @@
         "molecular_type": null,
         "ontology_link": null,
         "family": null,
-        "publication": null
+        "publication": null,
+        "category": "force field"
         },
         {"name": "OPLS",
         "synonyms": ["opls"],
         "resolution": null,
         "molecular_type": null,
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_000758",
-        "family": null
+        "family": null,
+        "category": "force field"
         },
         {"name": "OPLS-AA/L",
         "synonyms": ["l-opls"],
         "resolution": null,
         "molecular_type": null,
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_001984",
-        "family": null
+        "family": null,
+        "category": "force field"
         },
         {"name": "OPLS-AA",
         "synonyms": ["opls-aa"],
         "resolution": null,
         "molecular_type": null,
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_000759",
-        "family": null
+        "family": null,
+        "category": "force field"
         },
         {"name": "Martini 3",
         "synonyms": ["martini3", "martinini3.0"],
         "resolution": "coarse-grain",
         "molecular_type": null,
         "ontology_link": null,
-        "family": "martini"
+        "family": "martini",
+        "category": "force field"
         },
         {"name": "Martini",
         "synonyms": ["martini"],
         "resolution": "coarse-grain",
         "molecular_type": null,
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_001982",
-        "family": "martini"
+        "family": "martini",
+        "category": "force field"
         },
         {"name": "SIRAH",
         "synonyms": ["sirah"],
         "resolution": "coarse-grain",
         "molecular_type": null,
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_000645",
-        "family": "sirah"
+        "family": "sirah",
+        "category": "force field"
         },
         {"name": "GAFF",
         "synonyms": ["generalamberforcefield", "generalizedamberforcefield"],
         "resolution": "coarse-grain",
         "molecular_type": null,
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_000023",
-        "family": "amber"
+        "family": "amber",
+        "category": "force field"
         },
         {"name": "GAFFLipid",
         "synonyms": ["gafflipid"],
         "resolution": "all-atom",
         "molecular_type": "lipid",
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_001450",
-        "family": "amber"
+        "family": "amber",
+        "category": "force field"
         },
         {"name": "ECC-popc",
         "synonyms": ["ecc-popc"],
         "resolution": null,
         "molecular_type": null,
         "ontology_link": null,
-        "family": null
+        "family": null,
+        "category": "variation"
         },
         {"name": "ECC-lipids",
         "synonyms": ["ecc-lipids"],
         "resolution": null,
         "molecular_type": null,
         "ontology_link": null,
-        "family": null
+        "family": null,
+        "category": "variation"
         },
         {"name": "ECC-ions",
         "synonyms": ["ecc-ions"],
         "resolution": null,
         "molecular_type": null,
         "ontology_link": null,
-        "family": null
+        "family": null,
+        "category": "variation"
         },
         {"name": "compass",
         "synonyms": ["compass"],
@@ -386,7 +437,8 @@
         "resolution": null,
         "molecular_type": null,
         "ontology_link": null,
-        "family": null
+        "family": null,
+        "category": "forec field"
         },
         {"name": "trappe-ua",
         "synonyms": ["trappe-ua"],
@@ -400,14 +452,16 @@
         "resolution": null,
         "molecular_type": "variation",
         "ontology_link": null,
-        "family": null
+        "family": null,
+        "category": "variation"
         },
         {"name": "Williams",
         "synonyms": ["williams"],
         "resolution": null,
         "molecular_type": "variation",
         "ontology_link": null,
-        "family": null
+        "family": null,
+        "category": "variation"
         },
         {"name": "Ulmschneider",
         "synonyms": ["ulmschneider"],
@@ -456,7 +510,8 @@
         "resolution": null,
         "molecular_type": "variation",
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_001545",
-        "family": null
+        "family": null,
+        "category": "variation"
         },
         {"name": "DANG",
         "synonyms": ["dang"],
