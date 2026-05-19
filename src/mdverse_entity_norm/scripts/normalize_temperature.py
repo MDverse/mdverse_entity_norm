@@ -40,7 +40,7 @@ def norm_temp(temp_str: str) -> tuple:
     # we normalize it to the standard value
     if temp_str == "room temperature":
         return (293, "K")
-    if temp_str == "body temperature":
+    if temp_str == "human body temperature":
         return (310, "K")
     temperature_match = re.search(r"([0-9]+)(\.?[0-9]+)?( *°? *[a-z]*)?", temp_str)
     if temperature_match is None:
@@ -82,13 +82,15 @@ def create_norm_temp_file(raw_temp_file: str, norm_temp_file: str):
     norm_temp_file (str) : name of the input file with the normalised informations
 
     """
-    with open(raw_temp_file) as file_1, open(norm_temp_file, "w") as f2:
+    df = pd.read_csv(raw_temp_file, sep="\t")
+    temp_entities = df[df["category"] == "TEMP"]["entity"].tolist()
+
+    with open(norm_temp_file, "w") as f2:
         f2.write(
             "raw_temperature\tnormalised_temperature\tnormalised_unit\tnormalized_result\n"
         )
 
-        for line in file_1:
-            raw_temp = line.strip()
+        for raw_temp in temp_entities:
             temperature_value, temperature_unit = norm_temp(raw_temp)
 
             if temperature_value is not None:
@@ -96,36 +98,7 @@ def create_norm_temp_file(raw_temp_file: str, norm_temp_file: str):
                     f"{raw_temp}\t{temperature_value}\t{temperature_unit}\t{str(temperature_value) + temperature_unit}\n"
                 )
             else:
-                f2.write(f"{raw_temp}\tERROR\tERROR\n")
-
-
-def visualize_temperature_normalisation_effect(file_path):
-
-    temp_normalisation_results = pd.read_csv(file_path, sep="\t")
-
-    counts = temp_normalisation_results["normalized_result"].value_counts().sort_index()
-
-    labels = counts.index
-    before = counts.values
-    after = [1] * len(labels)
-
-    x = range(len(labels))
-    plt.figure(figsize=(14, 5))
-    plt.bar(x, before, width=0.4, label="Before Grounding")
-
-    x2 = []
-    for i in x:
-        x2.append(i + 0.4)
-    plt.bar(x2, after, width=0.4, label="After Grounding")
-
-    plt.xticks(x, labels, rotation=90)
-
-    plt.title("Temperature Normalisation Effect")
-    plt.ylabel("Occurrence")
-    plt.legend()
-
-    plt.tight_layout()
-    plt.savefig("results/norm_temp/normalisation_effect.png")
+                f2.write(f"{raw_temp}\tERROR\tERROR\tERROR\n")
 
 
 def visualize_entity_count(file_path):
@@ -164,6 +137,5 @@ if __name__ == "__main__":
     for temperature in examples_temperature:
         print(f"norm_temp('{temperature}') = {norm_temp(temperature)}")
 
-    create_norm_temp_file("data/TEMP.txt", "results/norm_temp.tsv")
-    visualize_temperature_normalisation_effect("results/norm_temp.tsv")
+    create_norm_temp_file("data/entities.tsv", "results/norm_temp.tsv")
     visualize_entity_count("results/norm_temp.tsv")
