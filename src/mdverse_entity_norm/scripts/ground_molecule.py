@@ -1,7 +1,6 @@
 """Script to ground molecule entities using various databases and compare results."""
 
 import csv
-import json
 import os
 import re
 from datetime import UTC, datetime
@@ -16,10 +15,11 @@ from loguru import logger
 API_PDB = "https://data.rcsb.org/rest/v1/core/entry/"
 API_UNIPROT = "https://rest.uniprot.org/uniprotkb/"
 # API_CHEBI = "https://www.ebi.ac.uk/chebi/backend/api/public/advanced_search/"
+API_CHEBI = "https://www.ebi.ac.uk/chebi/backend/api/public/es_search/"
 API_PUBCHEM = "https://pubchem.ncbi.nlm.nih.gov/rest/pug"
 API_LIGAND = "https://data.rcsb.org/rest/v1/core/chemcomp/"
 
-NOT_WANTED_WORD = ["inhibitor", "agonist"]
+NOT_WANTED_WORD = ["inhibitor", "agonist", "activator"]
 
 
 def load_molecule(file_path: Path) -> list:
@@ -114,7 +114,7 @@ def get_type(entry: str) -> str | None:
     # UniProt accession pattern matching
     if (
         re.search(
-            r"[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}",
+            r"[opq][0-9][a-z0-9]{3}[0-9]|[a-nr-z][0-9]([a-z][a-z0-9]{2}[0-9]){1,2}",
             entry,
         )
         is not None
@@ -134,63 +134,119 @@ def get_type(entry: str) -> str | None:
         return "PROTEIN"
 
 
-API_CHEBI = "https://www.ebi.ac.uk/ols4/api/search"
-
-
-def call_chebi(entity_name: str) -> dict:
-    logger.info(f"Searching for `{entity_name}` in ChEBI database (OLS4)...")
-
-    params = {
-        "ontology": "chebi",
-        "q": entity_name,
-        "queryFields": "label,synonym",
-        "rows": 10,
-    }
-
-    try:
-        response = httpx.get(API_CHEBI, params=params, timeout=30)
-
-        if response.status_code == 200:
-            data = response.json()
-            docs = data.get("response", {}).get("docs", [])
-
-            if not docs:
-                logger.warning(f"No OLS4/ChEBI results found for `{entity_name}`")
-                return {
-                    "entity_name": entity_name,
-                    "error": "No results found",
-                    "API": "CHEBI",
-                }
-
-            best = docs[0]
-            chebi_id = best.get("obo_id", "Not Available").replace("CHEBI:", "")
-
-            logger.success(f"OLS4/ChEBI grounding successful for `{entity_name}`.")
-            return {
-                "entity_name": entity_name,
-                "database": "CHEBI",
-                "id": chebi_id,
-                "score": data.get("responseHeader", {}).get("QTime", "Not Available"),
-                "name": best.get("label", "Not Available"),
-                "nb_res": data.get("response", {}).get("numFound", 0),
-            }
-
-        else:
-            logger.warning(
-                f"Failed to ground `{entity_name}` in OLS4/ChEBI (HTTP {response.status_code})."
-            )
-            return {
-                "entity_name": entity_name,
-                "error": f"HTTP {response.status_code}",
-                "API": "CHEBI",
-            }
-
-    except Exception as e:
-        logger.exception(f"Exception while querying OLS4/ChEBI for `{entity_name}`")
-        return {"entity_name": entity_name, "error": str(e), "API": "CHEBI"}
+# API_CHEBI = "https://www.ebi.ac.uk/ols4/api/search"
 
 
 # def call_chebi(entity_name: str) -> dict:
+#     logger.info(f"Searching for `{entity_name}` in ChEBI database (OLS4)...")
+
+#     params = {
+#         "ontology": "chebi",
+#         "q": entity_name,
+#         "queryFields": "label,synonym",
+#         "rows": 10,
+#     }
+
+#     try:
+#         response = httpx.get(API_CHEBI, params=params, timeout=30)
+
+#         if response.status_code == 200:
+#             data = response.json()
+#             docs = data.get("response", {}).get("docs", [])
+
+#             if not docs:
+#                 logger.warning(f"No OLS4/ChEBI results found for `{entity_name}`")
+#                 return {
+#                     "entity_name": entity_name,
+#                     "error": "No results found",
+#                     "API": "CHEBI",
+#                 }
+
+#             best_result = docs[0]
+#             chebi_id = best_result.get("obo_id", "Not Available").replace("CHEBI:", "")
+
+#             for unwanted in NOT_WANTED_WORD:
+#                 if unwanted in best_result.get("label", "Not Available"):
+#                     logger.warning(
+#                         f"OLS4/ChEBI grounding unsuccessful for `{entity_name}` because of "
+#                         f"{unwanted}."
+#                     )
+#                     return {
+#                         "entity_name": entity_name,
+#                         "error": "unwanted word",
+#                         "API": "CHEBI",
+#                     }
+#             logger.success(f"OLS4/ChEBI grounding successful for `{entity_name}`.")
+#             return {
+#                 "entity_name": entity_name,
+#                 "database": "CHEBI",
+#                 "id": chebi_id,
+#                 "score": "Not Available",
+#                 "name": best_result.get("label", "Not Available"),
+#                 "nb_res": data.get("response", {}).get("numFound", 0),
+#             }
+
+#         else:
+#             logger.warning(
+#                 f"Failed to ground `{entity_name}` in OLS4/ChEBI (HTTP {response.status_code})."
+#             )
+#             return {
+#                 "entity_name": entity_name,
+#                 "error": f"HTTP {response.status_code}",
+#                 "API": "CHEBI",
+#             }
+
+#     except Exception as e:
+#         logger.exception(f"Exception while querying OLS4/ChEBI for `{entity_name}`")
+#         return {"entity_name": entity_name, "error": str(e), "API": "CHEBI"}
+
+
+def call_chebi(entity_name: str):
+    """Query the ChEBI API for a given mollecule name.
+
+    Parameters
+    ----------
+    entity_name (str): name of the compound
+
+    Returns
+    -------
+    dict : Details retrieved from the chebi dtabase (id, score, name, stars)
+    """
+    parameters = {"term": entity_name, "page": 1, "size": 5}
+    response = httpx.get(f"{API_CHEBI}", params=parameters, timeout=10)
+    # If request is successful HTTP = 200
+    if response.status_code == 200:
+        logger.debug(
+            f"Status HTTP : {response.status_code} "
+            f"(The request succeeded for `{entity_name}`)"
+        )
+        results = response.json()["results"][0]
+
+        score = results.get("_score", 0)
+
+        if score < 20:
+            logger.warning(f"From ChEBI: `{entity_name}` found but score {score} < 20")
+
+            return {
+                "entity_name": entity_name,
+                "error": "Score < 20",
+                "API": "CHEBI",
+            }
+        else:
+            return {
+                "chebi_id": results["_id"],
+                "score": results["_score"],
+                "name": results["_source"]["ascii_name"],
+                "star": results["_source"]["stars"],
+            }
+    else:
+        logger.warning(
+            f"Status HTTP : {response.status_code} "
+            f"(The server can't process your request for `{entity_name}`)"
+        )
+
+
+# def call_chebi(entity_name: str):
 #     """
 #     Query the ChEBI advanced_search API for a given molecule name.
 
@@ -237,7 +293,7 @@ def call_chebi(entity_name: str) -> dict:
 
 #             score = results.get("_score", 0)
 
-#             if score < 0:
+#             if score < 20:
 #                 logger.warning(
 #                     f"From ChEBI: `{entity_name}` found but score {score} < 20"
 #                 )
@@ -249,16 +305,33 @@ def call_chebi(entity_name: str) -> dict:
 #                 }
 
 #             logger.success(f"ChEBI grounding successful for `{entity_name}`.")
+#             for unwanted in NOT_WANTED_WORD:
+#                 if unwanted not in results.get("_source", {}).get(
+#                     "ascii_name", "Not Available"
+#                 ):
+#                     return {
+#                         "entity_name": entity_name,
+#                         "database": "CHEBI",
+#                         "id": results.get("_id", "Not Available"),
+#                         "score": score,
+#                         "name": results.get("_source", {}).get(
+#                             "ascii_name", "Not Available"
+#                         ),
+#                         "star": results.get("_source", {}).get(
+#                             "stars", "Not Available"
+#                         ),
+#                         "nb_res": data.get("total", 0),
+#                     }
+#                 else:
+#                     logger.warning(
+#                         f"Failed to ground `{entity_name}` because of unwanted words"
+#                     )
 
-#             return {
-#                 "entity_name": entity_name,
-#                 "database": "CHEBI",
-#                 "id": results.get("_id", "Not Available"),
-#                 "score": score,
-#                 "name": results.get("_source", {}).get("ascii_name", "Not Available"),
-#                 "star": results.get("_source", {}).get("stars", "Not Available"),
-#                 "nb_res": data.get("total", 0),
-#             }
+#                     return {
+#                         "entity_name": entity_name,
+#                         "error": f"Contains {unwanted}",
+#                         "API": "CHEBI",
+#                     }
 
 #         else:
 #             logger.warning(
@@ -380,97 +453,97 @@ def call_uniprot(code_uniprot: str) -> dict:
         }
 
 
-# def call_pubchem(entity_name: str) -> dict:
-#     """Query the PubChem API for a given molecule name.
-
-#     Parameters
-#     ----------
-#     entity_name (str): name of the compound
-
-#     Returns
-#     -------
-#     dict : Details retrieved from PubChem (cid, full_name)
-#     """
-#     # The ressults_found contains :
-#     # - cid : The PubChem Compound ID (CID) of the entity
-#     # - full_name : The IUPAC name of the entity
-#     # - molecular_formula : The molecular formula of the entity
-#     response = httpx.get(
-#         f"{API_PUBCHEM}/compound/name/{entity_name}/property/IUPACName,MolecularFormula/JSON",
-#         timeout=100,
-#     )
-#     if response.status_code == 200:
-#         if len(response.json()["PropertyTable"]["Properties"][0]) > 0:
-#             results = response.json()["PropertyTable"]["Properties"][0]
-#             logger.debug(
-#                 f"from PubChem: for {entity_name} : -> Status HTTP : {response.status_code}"
-#                 f"(The request succeeded)"
-#             )
-#             # results = response.json()["PropertyTable"]["Properties"][0]
-#             logger.success(f"PubChem grounding successful for `{entity_name}`.")
-#             return {
-#                 "entity_name": entity_name,
-#                 "database": "PubChem",
-#                 "id": results.get("CID", "Not Available"),
-#                 "name": results.get("IUPACName", "Not Available"),
-#                 "molecular_formula": results.get("MolecularFormula", "Not Available"),
-#             }
-#         else:
-#             logger.warning(
-#                 f"Failed to ground `{entity_name}`"
-#                 f" in Pubchem database (HTTP {response.status_code})."
-#             )
-#             return {
-#                 "entity_name": entity_name,
-#                 "error": "empty response",
-#                 "API": "PUBCHEM",
-#             }
-
-#     else:
-#         logger.warning(
-#             f"Failed to ground `{entity_name}`"
-#             f" in Pubchem database (HTTP {response.status_code})."
-#         )
-#         return {
-#             "entity_name": entity_name,
-#             "error": f"HTTP {response.status_code}",
-#             "API": "PUBCHEM",
-#         }
-
-
 def call_pubchem(entity_name: str) -> dict:
+    """Query the PubChem API for a given molecule name.
+
+    Parameters
+    ----------
+    entity_name (str): name of the compound
+
+    Returns
+    -------
+    dict : Details retrieved from PubChem (cid, full_name)
+    """
+    # The ressults_found contains :
+    # - cid : The PubChem Compound ID (CID) of the entity
+    # - full_name : The IUPAC name of the entity
+    # - molecular_formula : The molecular formula of the entity
     response = httpx.get(
         f"{API_PUBCHEM}/compound/name/{entity_name}/property/IUPACName,MolecularFormula/JSON",
-        timeout=100,
+        timeout=160,
     )
     if response.status_code == 200:
-        try:
+        if len(response.json()["PropertyTable"]["Properties"][0]) > 0:
             results = response.json()["PropertyTable"]["Properties"][0]
-        except (KeyError, IndexError, json.JSONDecodeError):
-            logger.warning(f"PubChem returned no usable data for `{entity_name}`.")
+            logger.debug(
+                f"from PubChem: for {entity_name} : -> Status HTTP : {response.status_code}"
+                f"(The request succeeded)"
+            )
+            # results = response.json()["PropertyTable"]["Properties"][0]
+            logger.success(f"PubChem grounding successful for `{entity_name}`.")
+            return {
+                "entity_name": entity_name,
+                "database": "PubChem",
+                "id": results.get("CID", "Not Available"),
+                "name": results.get("IUPACName", "Not Available"),
+                "molecular_formula": results.get("MolecularFormula", "Not Available"),
+            }
+        else:
+            logger.warning(
+                f"Failed to ground `{entity_name}`"
+                f" in Pubchem database (HTTP {response.status_code})."
+            )
             return {
                 "entity_name": entity_name,
                 "error": "empty response",
                 "API": "PUBCHEM",
             }
 
-        logger.success(f"PubChem grounding successful for `{entity_name}`.")
-        return {
-            "entity_name": entity_name,
-            "database": "PubChem",
-            "id": results.get("CID", "Not Available"),
-            "name": results.get("IUPACName", "Not Available"),
-            "molecular_formula": results.get("MolecularFormula", "Not Available"),
-        }
     else:
         logger.warning(
-            f"Failed to ground `{entity_name}` in PubChem (HTTP {response.status_code})."
+            f"Failed to ground `{entity_name}`"
+            f" in Pubchem database (HTTP {response.status_code})."
         )
         return {
             "entity_name": entity_name,
             "error": f"HTTP {response.status_code}",
             "API": "PUBCHEM",
         }
+
+
+# def call_pubchem(entity_name: str) -> dict:
+#     response = httpx.get(
+#         f"{API_PUBCHEM}/compound/name/{entity_name}/property/IUPACName,MolecularFormula/JSON",
+#         timeout=100,
+#     )
+#     if response.status_code == 200:
+#         try:
+#             results = response.json()["PropertyTable"]["Properties"][0]
+#         except (KeyError, IndexError, json.JSONDecodeError):
+#             logger.warning(f"PubChem returned no usable data for `{entity_name}`.")
+#             return {
+#                 "entity_name": entity_name,
+#                 "error": "empty response",
+#                 "API": "PUBCHEM",
+#             }
+
+#         logger.success(f"PubChem grounding successful for `{entity_name}`.")
+#         return {
+#             "entity_name": entity_name,
+#             "database": "PubChem",
+#             "id": results.get("CID", "Not Available"),
+#             "name": results.get("IUPACName", "Not Available"),
+#             "molecular_formula": results.get("MolecularFormula", "Not Available"),
+#         }
+#     else:
+#         logger.warning(
+#             f"Failed to ground `{entity_name}` in PubChem (HTTP {response.status_code})."
+#         )
+#         return {
+#             "entity_name": entity_name,
+#             "error": f"HTTP {response.status_code}",
+#             "API": "PUBCHEM",
+#         }
 
 
 # def call_pubchem(entity_name: str) -> dict:
@@ -540,10 +613,39 @@ def call_sequence(entity_name: str) -> dict:
         }
 
 
-def ground_whole_molecule(molecule: str):
+def call_csml(entity_name: str, csml_scrap: Path):
+    csml = pd.read_csv(csml_scrap, sep=",")
+    scraping = dict(zip(csml["short_name"], csml["grounding_name"], strict=True))
+
+    logger.info(f"Searching {entity_name} in csml")
+    for short_name, grounding in scraping.items():
+        if entity_name == short_name.lower():
+            logger.success(
+                f"In CSML Successfully grounded {entity_name} to {grounding} by {short_name}"
+            )
+            return {
+                "entity_name": entity_name,
+                "database": "CSML",
+                "name": grounding,
+            }
+    logger.warning(f"In CSML no grounding found for {entity_name}")
+    return {
+        "entity_name": entity_name,
+        "database": "CSML",
+        "error": f"{entity_name} not found in CSML",
+    }
+
+
+def ground_whole_molecule(molecule: str, csml_scrap):
     """Ground molecules using ChEBI first, then PubChem only if ChEBI fails."""
     results_found = []
     results_not_found = []
+    logger.info(f"Trying to ground `{molecule}` using CSML...")
+    result = call_csml(molecule, csml_scrap)
+    if "error" not in result:
+        results_found.append(result)
+        logger.success(f"CSML found `{molecule}`")
+        return results_found, results_not_found
 
     logger.info(f"Trying to ground `{molecule}` using ChEBI...")
 
@@ -584,32 +686,7 @@ def ground_whole_molecule(molecule: str):
     return results_found, results_not_found
 
 
-# def ground_whole_molecule(molecule: str):
-#     results_found = []
-#     results_not_found = []
-
-#     logger.info(f"Trying to ground `{molecule}` using ChEBI...")
-#     result = call_chebi(molecule)
-#     if "error" not in result:
-#         results_found.append(result)
-
-#     logger.info(f"Trying to ground `{molecule}` using PubChem...")
-#     result = call_pubchem(molecule)
-#     if "error" not in result:
-#         results_found.append(result)
-
-#     if not results_found:
-#         logger.info(f"Trying to classify `{molecule}` as a sequence...")
-#         result = call_sequence(molecule)
-#         if "error" not in result:
-#             results_found.append(result)
-#         else:
-#             results_not_found.append(result)
-
-#     return results_found, results_not_found
-
-
-def grouding_mol(molecules: list[str]) -> tuple[list[dict], list[dict]]:
+def grouding_mol(molecules: list[str], csml_scrap) -> tuple[list[dict], list[dict]]:
     """Ground molecules from all databases.
 
     Parameters
@@ -636,7 +713,7 @@ def grouding_mol(molecules: list[str]) -> tuple[list[dict], list[dict]]:
             if "error" not in result:
                 results_found.append(result)
             else:
-                grounded, not_grounded = ground_whole_molecule(molecule)
+                grounded, not_grounded = ground_whole_molecule(molecule, csml_scrap)
                 results_found.extend(grounded)
                 results_not_found.extend(not_grounded)
         elif get_type(molecule) == "UNIPROT":
@@ -644,11 +721,11 @@ def grouding_mol(molecules: list[str]) -> tuple[list[dict], list[dict]]:
             if "error" not in result:
                 results_found.append(result)
             else:
-                grounded, not_grounded = ground_whole_molecule(molecule)
+                grounded, not_grounded = ground_whole_molecule(molecule, csml_scrap)
                 results_found.extend(grounded)
                 results_not_found.extend(not_grounded)
         else:
-            grounded, not_grounded = ground_whole_molecule(molecule)
+            grounded, not_grounded = ground_whole_molecule(molecule, csml_scrap)
             results_found.extend(grounded)
             results_not_found.extend(not_grounded)
     logger.success(
@@ -721,15 +798,24 @@ def save_found_results_into_tsv(
     type=click.Path(file_okay=True, path_type=Path),
     help="Path to the output file for grounded results",
 )
-def ground_molecules(mol_filepath: Path, grounded_mol_filepath: Path) -> None:
+@click.option(
+    "--csml_scrap",
+    default="results/grounded_molecules.tsv",
+    type=click.Path(file_okay=True, path_type=Path),
+    help="Path to the csml file for grounded results",
+)
+def ground_molecules(
+    mol_filepath: Path, grounded_mol_filepath: Path, csml_scrap
+) -> None:
     """Ground all molecules in the input file and write results to output file."""
     # Load molecule enntities from txt file
     molecules = load_molecule(mol_filepath)
     # Possibility to filter only the 5 first molecules for testing
     molecules = molecules[:]
     # Grounding the molecule
-    grounded_mols, not_grounded_mols = grouding_mol(molecules)
+    grounded_mols, not_grounded_mols = grouding_mol(molecules, csml_scrap)
     save_found_results_into_tsv(grounded_mols, not_grounded_mols, grounded_mol_filepath)
+    logger.info(f"loaded {len(molecules)} molecules")
     # print(len(create_ligand_dict(not_grounded_mols)))
     # print(create_ligand_dict(not_grounded_mols))
 
