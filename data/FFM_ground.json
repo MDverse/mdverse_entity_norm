@@ -247,8 +247,8 @@
         "family": "amber",
         "category": "force field"
         },
-        {"name": "AMBER ff99SB-ILDB",
-        "synonyms": ["amber99sb-ildb"],
+        {"name": "AMBER ff99SB-ILDN",
+        "synonyms": ["amber99sb-ildn","amber99sb-ildb"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": null,
@@ -256,7 +256,15 @@
         "category": "force field"
         },
         {"name": "AMBER ff99sb*",
-        "synonyms": ["amber99sb*","ff99sb"],
+        "synonyms": ["amber99sb*","ff99sb*"],
+        "resolution": "all-atom",
+        "molecular_type": null,
+        "ontology_link": null,
+        "family": "amber",
+        "category": "force field"
+        },
+        {"name": "AMBER ff99",
+        "synonyms": ["amberff99","ff99"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": null,
