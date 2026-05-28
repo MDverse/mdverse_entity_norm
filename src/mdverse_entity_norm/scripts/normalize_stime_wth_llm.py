@@ -112,8 +112,12 @@ def get_llm_normalization_results(stime: pd.DataFrame) -> list[dict]:
         results.append(
             {
                 "STIME": str(row["entity"]),
-                "LLM_value": llm_outputs[0][0],
-                "LLM_unit": llm_outputs[0][1],
+                "LLM_value": llm_outputs[0][0]
+                if llm_outputs[0][0] is not None
+                else "None",
+                "LLM_unit": llm_outputs[0][1]
+                if llm_outputs[0][1] is not None
+                else "None",
             }
         )
     return results
