@@ -60,8 +60,8 @@ def normalize_stim_regex(stime_entities: pd.DataFrame) -> list[dict]:
         results.append(
             {
                 "STIME": str(row["entity"]),
-                "regex_value": reg_value,
-                "regex_unit": reg_unit,
+                "regex_value": reg_value if reg_value is not None else "None",
+                "regex_unit": reg_unit if reg_unit is not None else "None",
             }
         )
     return results
