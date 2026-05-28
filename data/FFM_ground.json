@@ -2,7 +2,7 @@
     "force_fields":
     [
         {"name": "Charmm 36",
-        "synonyms": ["charmm36", "charmmc36", "c36"],
+        "aliases": ["charmm36", "charmmc36", "c36"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_000132",
@@ -10,7 +10,7 @@
         "category": "force field"
         },
         {"name": "Charmm 36m",
-        "synonyms": ["charmm36m","c36m"],
+        "aliases": ["charmm36m","c36m"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": null,
@@ -19,7 +19,7 @@
         "publication": "https://doi.org/10.1038/nmeth.4067"
         },
         {"name": "CHARMM36-WYF",
-        "synonyms": ["charm36-wyf"],
+        "aliases": ["charm36-wyf"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": null,
@@ -28,7 +28,7 @@
         "publication": "https://doi.org/10.1021/acs.jctc.8b00839"
         },
         {"name": "Charmm TIP3P",
-        "synonyms": ["charmmtip3p"],
+        "aliases": ["charmmtip3p"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": null,
@@ -37,7 +37,7 @@
         "publication": null
         },
         {"name": "Charmm 27",
-        "synonyms": ["charmm27"],
+        "aliases": ["charmm27"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_000753",
@@ -45,7 +45,7 @@
         "category": "force field"
         },
         {"name": "Charmm 22*",
-        "synonyms": ["charmm22*", "c22*"],
+        "aliases": ["charmm22*", "c22*"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": null,
@@ -53,7 +53,7 @@
         "category": "force field"
         },
         {"name": "Charmm 22",
-        "synonyms": ["charmm22"],
+        "aliases": ["charmm22"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": null,
@@ -62,7 +62,7 @@
         "publication": "https://doi.org/10.1021/jp973084f"
         },
         {"name": "Charmm 36 CUFIX",
-        "synonyms": ["charmm36cufix", "c36mcu"],
+        "aliases": ["charmm36cufix", "c36mcu"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": null,
@@ -71,7 +71,7 @@
         "publication": "https://doi.org/10.1021/jp973084f"
         },
         {"name": "Charmm36 (v. june 2015)",
-        "synonyms": ["charmm36(v.june 2015)"],
+        "aliases": ["charmm36(v.june 2015)"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": null,
@@ -80,7 +80,7 @@
         "publication": "https://doi.org/10.1021/jp973084f"
         },
         {"name": "Charmm",
-        "synonyms": ["charmm"],
+        "aliases": ["charmm"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_000248",
@@ -88,7 +88,7 @@
         "category": "force field"
         },
         {"name": "TIP3P",
-        "synonyms": ["tip3p", "charmmtip3p"],
+        "aliases": ["tip3p", "charmmtip3p"],
         "resolution": "all-atom",
         "molecular_type": "water",
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_000022",
@@ -96,7 +96,7 @@
         "category": "model"
         },
         {"name": "SPC/E",
-        "synonyms": ["spc/e"],
+        "aliases": ["spc/e"],
         "resolution": "all-atom",
         "molecular_type": "water",
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_000771",
@@ -104,7 +104,7 @@
         "category": "model"
         },
         {"name": "SPC",
-        "synonyms": ["spc"],
+        "aliases": ["spc"],
         "resolution": "all-atom",
         "molecular_type": "water",
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_000769",
@@ -112,7 +112,7 @@
         "category": "model"
         },
         {"name": "OPC",
-        "synonyms": ["opc"],
+        "aliases": ["opc"],
         "resolution": "all-atom",
         "molecular_type": "water",
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_000031",
@@ -120,7 +120,7 @@
         "category": "model"
         },
         {"name": "TIP4P/2005",
-        "synonyms": ["tip4p/2005"],
+        "aliases": ["tip4p/2005"],
         "resolution": "all-atom",
         "molecular_type": "water",
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_000766",
@@ -128,7 +128,7 @@
         "category": "model"
         },
         {"name": "WatFour",
-        "synonyms": ["watfour", "WT4"],
+        "aliases": ["watfour", "WT4"],
         "resolution": "coarse-grained",
         "molecular_type": "water",
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_001493",
@@ -136,7 +136,7 @@
         "category": "model"
         },
         {"name": "Gromos 53a6",
-        "synonyms": ["gromos53a6", "53a6"],
+        "aliases": ["gromos53a6", "53a6"],
         "resolution": "all-atom",
         "molecular_type": "water",
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_001974",
@@ -144,7 +144,7 @@
         "category": "force field"
         },
         {"name": "Gromos 54a7",
-        "synonyms": ["gromos54a7", "54a7"],
+        "aliases": ["gromos54a7", "54a7"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": null,
@@ -152,7 +152,7 @@
         "category": "force field"
         },
         {"name": "Gromos 87",
-        "synonyms": ["gromos87"],
+        "aliases": ["gromos87"],
         "resolution": "united-atom",
         "molecular_type": null,
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_001977",
@@ -160,7 +160,7 @@
         "category": "force field"
         },
         {"name": "Gromos 43a1-s3",
-        "synonyms": ["gromos43a1-s3","43a1-s3"],
+        "aliases": ["gromos43a1-s3","43a1-s3"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": null,
@@ -168,7 +168,7 @@
         "category": "force field"
         },
         {"name": "Gromos 56a6carbo/carbo_r",
-        "synonyms": ["gromos56a6carbo/carbo_r"],
+        "aliases": ["gromos56a6carbo/carbo_r"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": null,
@@ -176,7 +176,7 @@
         "category": "force field"
         },
         {"name": "AMBER ff03 w",
-        "synonyms": ["amberff03w", "ff03w", "amber03w"],
+        "aliases": ["amberff03w", "ff03w", "amber03w"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": null,
@@ -184,7 +184,7 @@
         "category": "force field"
         },
         {"name": "AMBER ff03*",
-        "synonyms": ["amberff03*", "ff03*"],
+        "aliases": ["amberff03*", "ff03*"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": null,
@@ -192,7 +192,7 @@
         "category": "force field"
         },
         {"name": "AMBER ff03",
-        "synonyms": ["amberff03", "ff03", "amber03"],
+        "aliases": ["amberff03", "ff03", "amber03"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_001442",
@@ -200,7 +200,7 @@
         "category": "force field"
         },
         {"name": "AMBER",
-        "synonyms": ["amber"],
+        "aliases": ["amber"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": null,
@@ -208,7 +208,7 @@
         "category": "force field"
         },
         {"name": "Amber ff14SB",
-        "synonyms": ["amberff14SB", "amber14sb"],
+        "aliases": ["amberff14SB", "amber14sb"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_000021",
@@ -216,7 +216,7 @@
         "category": "force field"
         },
         {"name": "Amber ff15ipq",
-        "synonyms": ["amberff15ipq"],
+        "aliases": ["amberff15ipq"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": null,
@@ -224,7 +224,7 @@
         "category": "force field"
         },
         {"name": "AMBER ff99SB-ILDN",
-        "synonyms": ["amberff99sb-ildn", "amberff99sb-ildn", "ff99sb-ildn"],
+        "aliases": ["amberff99sb-ildn", "amberff99sb-ildn", "ff99sb-ildn"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_000750",
@@ -232,7 +232,7 @@
         "category": "force field"
         },
         {"name": "AMBER ff99SB-ILDN-phi",
-        "synonyms": ["amberf99sb-ildn-phi","ff99sb-ildn-phi" ],
+        "aliases": ["amberf99sb-ildn-phi","ff99sb-ildn-phi" ],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": null,
@@ -240,7 +240,7 @@
         "category": "force field"
         },
         {"name": "AMBER ff99SB-ILDN-nmr",
-        "synonyms": ["amberff99sb-ildn-nmr","ff99sb-ildn-nmr"],
+        "aliases": ["amberff99sb-ildn-nmr","ff99sb-ildn-nmr"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": null,
@@ -248,7 +248,7 @@
         "category": "force field"
         },
         {"name": "AMBER ff99SB-ILDN",
-        "synonyms": ["amber99sb-ildn","amber99sb-ildb"],
+        "aliases": ["amber99sb-ildn","amber99sb-ildb"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": null,
@@ -256,7 +256,7 @@
         "category": "force field"
         },
         {"name": "AMBER ff99sb*",
-        "synonyms": ["amber99sb*","ff99sb*"],
+        "aliases": ["amber99sb*","ff99sb*"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": null,
@@ -264,7 +264,7 @@
         "category": "force field"
         },
         {"name": "AMBER ff99",
-        "synonyms": ["amberff99","ff99"],
+        "aliases": ["amberff99","ff99"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": null,
@@ -272,7 +272,7 @@
         "category": "force field"
         },
         {"name": "AMBER ff96",
-        "synonyms": ["amber96","ff96"],
+        "aliases": ["amber96","ff96"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_000745",
@@ -280,7 +280,7 @@
         "category": "force field"
         },
         {"name": "amber10:extended huckel theory (eht)",
-        "synonyms": ["amber10extendedhuckeltheory(eht)","amber10"],
+        "aliases": ["amber10extendedhuckeltheory(eht)","amber10"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_000745",
@@ -288,7 +288,7 @@
         "category": "force field"
         },
         {"name": "Lipid 21",
-        "synonyms": ["lipid21"],
+        "aliases": ["lipid21"],
         "resolution": "all-atom",
         "molecular_type": "lipid",
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_000018",
@@ -297,7 +297,7 @@
         "category": "force field"
         },
         {"name": "Slipids",
-        "synonyms": ["slipids","sl"],
+        "aliases": ["slipids","sl"],
         "resolution": null,
         "molecular_type": "lipid",
         "ontology_link": null,
@@ -305,7 +305,7 @@
         "category": "force field"
         },
         {"name": "Berger",
-        "synonyms": ["berger"],
+        "aliases": ["berger"],
         "resolution": null,
         "molecular_type": null,
         "ontology_link": null,
@@ -313,7 +313,7 @@
         "category": "force field"
         },
         {"name": "Trappe",
-        "synonyms": ["trappe"],
+        "aliases": ["trappe"],
         "resolution": null,
         "molecular_type": null,
         "ontology_link": null,
@@ -321,7 +321,7 @@
         "category": "force field"
         },
         {"name": "RSFF2",
-        "synonyms": ["rsff2"],
+        "aliases": ["rsff2"],
         "resolution": null,
         "molecular_type": null,
         "ontology_link": null,
@@ -330,7 +330,7 @@
         "category": "force field"
         },
         {"name": "RSFF1",
-        "synonyms": ["rsff1"],
+        "aliases": ["rsff1"],
         "resolution": null,
         "molecular_type": null,
         "ontology_link": null,
@@ -339,7 +339,7 @@
         "category": "force field"
         },
         {"name": "OPLS",
-        "synonyms": ["opls"],
+        "aliases": ["opls"],
         "resolution": null,
         "molecular_type": null,
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_000758",
@@ -347,7 +347,7 @@
         "category": "force field"
         },
         {"name": "OPLS-AA/L",
-        "synonyms": ["l-opls"],
+        "aliases": ["l-opls"],
         "resolution": null,
         "molecular_type": null,
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_001984",
@@ -355,7 +355,7 @@
         "category": "force field"
         },
         {"name": "OPLS-AA",
-        "synonyms": ["opls-aa"],
+        "aliases": ["opls-aa"],
         "resolution": null,
         "molecular_type": null,
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_000759",
@@ -363,7 +363,7 @@
         "category": "force field"
         },
         {"name": "Martini 3",
-        "synonyms": ["martini3", "martinini3.0"],
+        "aliases": ["martini3", "martinini3.0"],
         "resolution": "coarse-grain",
         "molecular_type": null,
         "ontology_link": null,
@@ -371,7 +371,7 @@
         "category": "force field"
         },
         {"name": "Martini",
-        "synonyms": ["martini"],
+        "aliases": ["martini"],
         "resolution": "coarse-grain",
         "molecular_type": null,
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_001982",
@@ -379,7 +379,7 @@
         "category": "force field"
         },
         {"name": "SIRAH",
-        "synonyms": ["sirah"],
+        "aliases": ["sirah"],
         "resolution": "coarse-grain",
         "molecular_type": null,
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_000645",
@@ -387,7 +387,7 @@
         "category": "force field"
         },
         {"name": "GAFF",
-        "synonyms": ["generalamberforcefield", "generalizedamberforcefield"],
+        "aliases": ["generalamberforcefield", "generalizedamberforcefield"],
         "resolution": "coarse-grain",
         "molecular_type": null,
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_000023",
@@ -395,7 +395,7 @@
         "category": "force field"
         },
         {"name": "GAFFLipid",
-        "synonyms": ["gafflipid"],
+        "aliases": ["gafflipid"],
         "resolution": "all-atom",
         "molecular_type": "lipid",
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_001450",
@@ -403,7 +403,7 @@
         "category": "force field"
         },
         {"name": "ECC-popc",
-        "synonyms": ["ecc-popc"],
+        "aliases": ["ecc-popc"],
         "resolution": null,
         "molecular_type": null,
         "ontology_link": null,
@@ -411,7 +411,7 @@
         "category": "variation"
         },
         {"name": "ECC-lipids",
-        "synonyms": ["ecc-lipids"],
+        "aliases": ["ecc-lipids"],
         "resolution": null,
         "molecular_type": null,
         "ontology_link": null,
@@ -419,7 +419,7 @@
         "category": "variation"
         },
         {"name": "ECC-ions",
-        "synonyms": ["ecc-ions"],
+        "aliases": ["ecc-ions"],
         "resolution": null,
         "molecular_type": null,
         "ontology_link": null,
@@ -427,21 +427,21 @@
         "category": "variation"
         },
         {"name": "compass",
-        "synonyms": ["compass"],
+        "aliases": ["compass"],
         "resolution": null,
         "molecular_type": null,
         "ontology_link": null,
         "family": null
         },
         {"name": "βol15",
-        "synonyms": ["βol15"],
+        "aliases": ["βol15"],
         "resolution": null,
         "molecular_type": null,
         "ontology_link": null,
         "family": null
         },
         {"name": "amber OL15",
-        "synonyms": ["amberol15"],
+        "aliases": ["amberol15"],
         "resolution": null,
         "molecular_type": null,
         "ontology_link": null,
@@ -449,14 +449,14 @@
         "category": "forec field"
         },
         {"name": "trappe-ua",
-        "synonyms": ["trappe-ua"],
+        "aliases": ["trappe-ua"],
         "resolution": null,
         "molecular_type": null,
         "ontology_link": null,
         "family": null
         },
         {"name": "Williams 7B",
-        "synonyms": ["williams7b"],
+        "aliases": ["williams7b"],
         "resolution": null,
         "molecular_type": "variation",
         "ontology_link": null,
@@ -464,7 +464,7 @@
         "category": "variation"
         },
         {"name": "Williams",
-        "synonyms": ["williams"],
+        "aliases": ["williams"],
         "resolution": null,
         "molecular_type": "variation",
         "ontology_link": null,
@@ -472,49 +472,49 @@
         "category": "variation"
         },
         {"name": "Ulmschneider",
-        "synonyms": ["ulmschneider"],
+        "aliases": ["ulmschneider"],
         "resolution": null,
         "molecular_type": null,
         "ontology_link": null,
         "family": null
         },
         {"name": "PYS",
-        "synonyms": ["pys"],
+        "aliases": ["pys"],
         "resolution": null,
         "molecular_type": null,
         "ontology_link": null,
         "family": null
         },
         {"name": "poger gromos 53a6_l",
-        "synonyms": ["pogergromos53a6_l"],
+        "aliases": ["pogergromos53a6_l"],
         "resolution": null,
         "molecular_type": null,
         "ontology_link": null,
         "family": null
         },
         {"name": "PLAFF3",
-        "synonyms": ["plaff3"],
+        "aliases": ["plaff3"],
         "resolution": null,
         "molecular_type": null,
         "ontology_link": null,
         "family": null
         },
         {"name": "PARMBSC0",
-        "synonyms": ["parmbsc0"],
+        "aliases": ["parmbsc0"],
         "resolution": null,
         "molecular_type": null,
         "ontology_link": null,
         "family": "amber"
         },
         {"name": "PARM99LNA",
-        "synonyms": ["parm99lna"],
+        "aliases": ["parm99lna"],
         "resolution": null,
         "molecular_type": null,
         "ontology_link": null,
         "family": "amber"
         },
         {"name": "NB-FIX",
-        "synonyms": ["nbfix"],
+        "aliases": ["nbfix"],
         "resolution": null,
         "molecular_type": "variation",
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_001545",
@@ -522,14 +522,14 @@
         "category": "variation"
         },
         {"name": "DANG",
-        "synonyms": ["dang"],
+        "aliases": ["dang"],
         "resolution": null,
         "molecular_type": null,
         "ontology_link": null,
         "family": null
         },
         {"name": " BPY1,3-TFSI",
-        "synonyms": ["bpy1,3-tfsi"],
+        "aliases": ["bpy1,3-tfsi"],
         "resolution": null,
         "molecular_type": null,
         "ontology_link": null,
