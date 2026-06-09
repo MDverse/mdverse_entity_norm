@@ -7,7 +7,7 @@ import click
 import pandas as pd
 
 PATTERN = re.compile(
-    r"([0-9]+)(\.?[0-9]+)? *(ps|ns|μs|us|ms|ks|s)",
+    r"([0-9]+)(\.?[0-9]+)? *(ps|ns|μs|ms|s)",
     re.IGNORECASE,
 )
 
@@ -85,13 +85,13 @@ def save_results_to_tsv(results: list, output_file: Path):
 @click.option(
     "--entities-file",
     type=click.Path(exists=True, dir_okay=False, path_type=Path),
-    default=Path("../data/ground_entities.tsv"),
+    default=Path("data/entities.tsv"),
     help="Path to the TSV file containing the entities.",
 )
 @click.option(
     "--output-file",
     type=click.Path(dir_okay=False, path_type=Path),
-    default=Path("../results/norm_simu_times/normalized_stime_results.tsv"),
+    default=Path("results/norm_simu_times/normalized_stime_results.tsv"),
     help="Path to the output TSV file for normalized results.",
 )
 def main(entities_file: Path, output_file: Path):
