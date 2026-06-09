@@ -11,7 +11,7 @@ from mdverse_entity_norm.scripts.normalize_simulation_time import (
 )
 
 MODEL_NAME = "deepseek/deepseek-v4-pro"
-PROMPT_PATH = Path("../data/llm_prompt.txt")
+PROMPT_PATH = Path("data/llm_prompt.txt")
 
 UNITS_TO_NS = {
     "ps": 1e-3,
@@ -109,17 +109,14 @@ def get_llm_normalization_results(stime: pd.DataFrame) -> list[dict]:
         if not llm_outputs:
             llm_outputs = [(None, None)]
 
-        results.append(
-            {
-                "STIME": str(row["entity"]),
-                "LLM_value": llm_outputs[0][0]
-                if llm_outputs[0][0] is not None
-                else "None",
-                "LLM_unit": llm_outputs[0][1]
-                if llm_outputs[0][1] is not None
-                else "None",
-            }
-        )
+        for value, unit in llm_outputs:
+            results.append(
+                {
+                    "STIME": str(row["entity"]),
+                    "LLM_value": value if value is not None else "None",
+                    "LLM_unit": unit if unit is not None else "None",
+                }
+            )
     return results
 
 
