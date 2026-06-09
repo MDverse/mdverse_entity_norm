@@ -42,7 +42,7 @@ def norm_temp(temp_str: str) -> tuple:
         return (293, "K")
     if temp_str == "human body temperature":
         return (310, "K")
-    temperature_match = re.search(r"([0-9]+)(\.?[0-9]+)?( *°? *[a-z]*)?", temp_str)
+    temperature_match = re.search(r"([0-9]+)(\.?[0-9]+)?( *˚? *[a-z]*)?", temp_str)
     if temperature_match is None:
         return None, None
     logger.info("Found temperature entity...")
