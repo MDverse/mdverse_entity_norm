@@ -34,7 +34,7 @@ repos:
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
   # Linter and formatter for Python code.
-  rev: v0.14.14
+  rev: v0.15.16
   hooks:
     # Run the linter.
     # Automatically fix issues where possible.
@@ -47,7 +47,7 @@ repos:
 
 - repo: https://github.com/PyCQA/bandit
   # Security linter for Python code.
-  rev: 1.9.3
+  rev: 1.9.4
   hooks:
   - id: bandit
     args: ["--exclude", "tests"]
