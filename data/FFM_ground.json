@@ -224,7 +224,7 @@
         "category": "force field"
         },
         {"name": "AMBER ff99SB-ILDN",
-        "aliases": ["amberff99sb-ildn", "amberff99sb-ildn", "ff99sb-ildn"],
+        "aliases": ["amberff99sb-ildn", "amberff99sb-ildn", "ff99sb-ildn", "amber99sb-ildb"],
         "resolution": "all-atom",
         "molecular_type": null,
         "ontology_link": "http://purl.obolibrary.org/obo/MOLSIM_000750",

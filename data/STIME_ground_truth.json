@@ -172,7 +172,7 @@
             ]
         },
         {
-            "input": "319.1 k",
+            "input": "319.1 meters",
             "output": [
                 {
                     "value": 319.1,
@@ -307,7 +307,7 @@
             ]
         },
         {
-            "input": "1.6 μs",
+            "input": "1.6-μs",
             "output": [
                 {
                     "value": 1.6,
@@ -464,15 +464,15 @@
             ]
         },
         {
-            "input": "100–200 km",
+            "input": "100--234 nanosecs",
             "output": [
                 {
                     "value": 100,
-                    "unit": null
+                    "unit": "ns"
                 },
                 {
-                    "value": 200,
-                    "unit": null
+                    "value": 234,
+                    "unit": "ns"
                 }
             ]
         },
@@ -517,7 +517,7 @@
             ]
         },
         {
-            "input": "298k",
+            "input": "298",
             "output": [
                 {
                     "value": 298,
@@ -535,11 +535,11 @@
             ]
         },
         {
-            "input": "20 μl",
+            "input": "20microsecs",
             "output": [
                 {
                     "value": 20,
-                    "unit": null
+                    "unit": "μs"
                 }
             ]
         },
@@ -553,11 +553,11 @@
             ]
         },
         {
-            "input": "300 k",
+            "input": "300seconds",
             "output": [
                 {
                     "value": 300,
-                    "unit": null
+                    "unit": "s"
                 }
             ]
         },
@@ -571,11 +571,11 @@
             ]
         },
         {
-            "input": "20 C",
+            "input": "twenty-micro-seconds",
             "output": [
                 {
                     "value": 20,
-                    "unit": null
+                    "unit": "μs"
                 }
             ]
         },
@@ -589,11 +589,15 @@
             ]
         },
         {
-            "input": "240 g",
+            "input": "from 130 ns to 530 ns",
             "output": [
                 {
-                    "value": 240,
-                    "unit": null
+                    "value": 130,
+                    "unit": "ns"
+                },
+                {
+                    "value": 530,
+                    "unit": "ns"
                 }
             ]
         },
@@ -619,7 +623,7 @@
             "input": "350million",
             "output": [
                 {
-                    "value": 350000000,
+                    "value": 35000000,
                     "unit": null
                 }
             ]
@@ -634,38 +638,38 @@
             ]
         },
         {
-            "input": "316.7 k",
+            "input": "31-nano-seconds",
             "output": [
                 {
-                    "value": 316.7,
-                    "unit": null
+                    "value": 31,
+                    "unit": "ns"
                 }
             ]
         },
         {
-            "input": "318.4 k",
+            "input": "84nanoseconds",
             "output": [
                 {
-                    "value": 318.4,
-                    "unit": null
+                    "value": 84,
+                    "unit": "ns"
                 }
             ]
         },
         {
-            "input": "320.1 k",
+            "input": "32 second",
             "output": [
                 {
-                    "value": 320.1,
-                    "unit": null
+                    "value": 32.0,
+                    "unit": "s"
                 }
             ]
         },
         {
-            "input": "321.8 k",
+            "input": "10nanoseconds",
             "output": [
                 {
-                    "value": 321.8,
-                    "unit": null
+                    "value": 10,
+                    "unit": "ns"
                 }
             ]
         },
@@ -724,11 +728,11 @@
             ]
         },
         {
-            "input": "41 fentosecond",
+            "input": "41 nanosecs",
             "output": [
                 {
                     "value": 41,
-                    "unit": "fs"
+                    "unit": "ns"
                 }
             ]
         },
@@ -796,7 +800,7 @@
             ]
         },
         {
-            "input": "500ps",
+            "input": "500picoseconds",
             "output": [
                 {
                     "value": 500,
@@ -850,7 +854,7 @@
             ]
         },
         {
-            "input": "8 microseconds",
+            "input": "8-microseconds",
             "output": [
                 {
                     "value": 8,
@@ -868,11 +872,11 @@
             ]
         },
                 {
-            "input": "213fentosecs",
+            "input": "213picoosecs",
             "output": [
                 {
-                    "value": 4.1,
-                    "unit": "fs"
+                    "value": 213,
+                    "unit": "ps"
                 }
             ]
         },
