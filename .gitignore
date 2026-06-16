@@ -211,5 +211,8 @@ __marimo__/
 *.tsv
 *.parquet
 *.csv
-*.txt
+*.png
+*.json
+*.owl
+*.html
 #!results/ground_mol_chebi.tsv

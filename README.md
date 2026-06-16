@@ -39,7 +39,7 @@ The logic behind the grounding of molecule entities is described in this image  
 To ground molecules entities, run :
 
 ```sh
-uv run src/mdverse_entity_norm/scripts/ground_molecule.py --mol_filepath data/MOL.txt --grounded_mol_filepath results/grounded_molecules.tsv
+uv run src/mdverse_entity_norm/scripts/ground_molecule.py --mol_filepath data/entities.tsv --grounded_mol_filepath results/grounded_molecules.tsv
 ```
 > This command generates two files in the `results` directory: `grounded_molecules.tsv` and `non_grounded_molecules.tsv`. The `grounded_molecules.tsv` file contains the grounded molecule entities with their corresponding identifiers, while the `non_grounded_molecules.tsv` file contains the molecule entities that could not be grounded.
 
