@@ -1,6 +1,5 @@
 digraph MOL_API_Workflow {
-
-
+    
     node [shape=rect, style=filled, fontname="Helvetica"];
     MOL [label="Input MOL entity", fillcolor=lightblue];
 
@@ -54,4 +53,12 @@ digraph MOL_API_Workflow {
     multi_db -> sequence_pattern[label="No"];
     sequence_pattern -> sequence_exists [label="Yes"];
     sequence_pattern -> unknown [label="No"];
+    
+    
+    // horizontal alignement
+    {rank=same; pdb_exists; pdb_id};
+    {rank=same; uniprot_exists; uniprot_id};
+    {rank=same; multi_db; chebi_id};
+    {rank=same; sequence_pattern; sequence_exists};
 }
+
