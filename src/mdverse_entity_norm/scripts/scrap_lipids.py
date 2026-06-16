@@ -1,3 +1,5 @@
+"""Scraps CSML molecules"""
+
 import csv
 import os
 import re
@@ -51,8 +53,9 @@ def build_grounding_name(short_name, long_name):
         The grounding name, built from the short name and the long name(cleaned).
     """
     long_name = long_name.replace("+ LONEPAIR", "").strip()
+    long_name = long_name.replace("+ LONE PAIR", "").strip()
     elements = []
-    formula_regex = re.compile(r"^[A-Z]+[0-9]+([A-Z]{1,2}[0-9]*)+$")
+    formula_regex = re.compile(r"^[A-Z]+[0-9]+([A-Z]{1,2}[0-9]*)*$")
 
     # We split the long name on ", "
     if long_name:
@@ -89,15 +92,15 @@ def build_grounding_name(short_name, long_name):
     grounding_name = []
     # if short_name:
     # grounding_name.append(short_name)
-    if formula:
-        grounding_name.append(formula)
+    # if formula:
+    # grounding_name.append(formula)
     if full_name:
         logger.info(
             f"Adding full name '{full_name}' to grounding name for short name '{short_name}'"
         )
         grounding_name.append(full_name)
 
-    return " ".join(grounding_name)
+    return " ".join(grounding_name), formula
 
 
 def parse_data_row(row, current_family):
@@ -124,7 +127,6 @@ def parse_data_row(row, current_family):
     short_name = cells[0].get_text(strip=True)
     if not short_name:
         return None
-
     # looks for a <font> tag inside the second cell to extract the long name,
     # because some long names are in a <font> tag.
     font_tag = cells[1].find("font")
@@ -135,10 +137,13 @@ def parse_data_row(row, current_family):
     if not long_name:
         return None
 
+    query_name, formula = build_grounding_name(short_name, long_name)
+
     return {
         "short_name": short_name,
+        "formula": formula,
         "long_name": long_name,
-        "query_name": build_grounding_name(short_name, long_name),
+        "query_name": query_name,
     }
 
 
@@ -172,18 +177,6 @@ def scrape_table(soup):
                 results.append(entry)
 
     return results
-
-
-# def print_preview(results, n=15):
-#     """Print the first n rows to the terminal."""
-#     print(f"Found {len(results)} residues/lipids\n")
-#     print(f"{'Family':<30} {'Short':^8}  {'Long name':<45} Grounding name")
-#     print("-" * 100)
-#     for r in results[:n]:
-#         print(
-#             f"{r['family']:<30} {r['short_name']:^8}  "
-#             f"{r['long_name'][:40]:<45} {r['grounding_name'][:40]}"
-#         )
 
 
 def save_to_csv(results, filename):
@@ -246,18 +239,95 @@ def ground_one(grounding_name: str) -> dict:
     }
 
 
-def ground_both(grounding_name: str) -> dict:
+def ground_both(
+    grounding_name: str, short_name: str, long_name: str, formula: str
+) -> dict:
+    """Ground a single grounding_name via ChEBI and PubChem.
+
+    Parameters
+    ----------
+    grounding_name : str
+        The grounding name to look up.
+    short_name : str
+        The short name of the lipid/residue.
+    long_name : str
+        The long name of the lipid/residue.
+    formula : str
+        The chemical formula of the lipid/residue.
+
+    Returns
+    -------
+    dict
+        A dict with keys: short_name, formula, long_name, chebi_query, pubchem_query,
+        chebi_id, chebi_score, chebi_name, pubchem_id, pubchem_name
+    """
     chebi = call_chebi(grounding_name) or {}
     pubchem = call_pubchem(grounding_name) or {}
 
+    chebi_ok = (
+        chebi.get("chebi_id") and chebi.get("formula", "Not Available") == formula
+    )
+    pubchem_ok = (
+        pubchem.get("id")
+        and pubchem.get("molecular_formula", "Not Available") == formula
+    )
+
+    if not chebi_ok:
+        if short_name != grounding_name:
+            chebi_fallback = call_chebi(short_name) or {}
+            if (
+                chebi_fallback.get("chebi_id")
+                and chebi_fallback.get("formula", "Not Available") == formula
+            ):
+                chebi = chebi_fallback
+                chebi_ok = True
+        chebi_query = short_name
+    else:
+        chebi_query = grounding_name
+
+    if not pubchem_ok:
+        if short_name != grounding_name:
+            pubchem_fallback = call_pubchem(short_name) or {}
+            if (
+                pubchem_fallback.get("id")
+                and pubchem_fallback.get("molecular_formula", "Not Available")
+                == formula
+            ):
+                pubchem = pubchem_fallback
+                pubchem_ok = True
+        pubchem_query = short_name
+    else:
+        pubchem_query = grounding_name
+
     return {
-        "query_name": grounding_name,
-        "chebi_id": chebi.get("chebi_id", "N/A"),
-        "chebi_score": chebi.get("score", "N/A"),
-        "chebi_name": chebi.get("name", "N/A"),
-        "pubchem_id": pubchem.get("id", "N/A"),
-        "pubchem_name": pubchem.get("name", "N/A"),
+        "short_name": short_name,
+        "formula": formula,
+        "long_name": long_name,
+        "chebi_query": chebi_query,
+        "pubchem_query": pubchem_query,
+        "chebi_id": chebi.get("chebi_id", "Not found") if chebi_ok else "Not found",
+        "chebi_score": chebi.get("score", "Not found") if chebi_ok else "Not found",
+        "chebi_name": chebi.get("name", "Not found") if chebi_ok else "Not found",
+        "pubchem_id": pubchem.get("id", "Not found") if pubchem_ok else "Not found",
+        "pubchem_name": pubchem.get("name", "Not found") if pubchem_ok else "Not found",
     }
+
+
+def _grounding_sort_key(entry: dict) -> int:
+    """Sort grounding results, prioritizing entries that were found in either ChEBI or PubChem.
+
+    Parameters
+    ----------
+    entry : dict
+        A dict with keys: query_name, chebi_id, chebi_score, chebi_name, pubchem_id, pubchem_name
+
+    Returns
+    -------
+    int
+        0 if the entry was found in either ChEBI or PubChem, 1 otherwise.
+    """
+    found = entry["chebi_id"] != "Not found" or entry["pubchem_id"] != "Not found"
+    return 0 if found else 1
 
 
 def save_grounding_to_tsv(grounding_results: list[dict], output_file: Path) -> None:
@@ -275,7 +345,11 @@ def save_grounding_to_tsv(grounding_results: list[dict], output_file: Path) -> N
         writer = csv.DictWriter(
             f,
             fieldnames=[
-                "query_name",
+                "short_name",
+                "formula",
+                "long_name",
+                "chebi_query",
+                "pubchem_query",
                 "chebi_id",
                 "chebi_score",
                 "chebi_name",
@@ -316,9 +390,14 @@ def scrap_lipids(scraped_file, grounded_file):
 
     lipid_grounding_results = []
     for entry in lipid_scrapping:
-        grounded = ground_both(entry["query_name"])
+        grounded = ground_both(
+            grounding_name=entry["query_name"],
+            short_name=entry["short_name"],
+            formula=entry["formula"],
+            long_name=entry["long_name"],
+        )
         lipid_grounding_results.append(grounded)
-
+    lipid_grounding_results.sort(key=_grounding_sort_key)
     save_grounding_to_tsv(lipid_grounding_results, grounded_file)
 
 
