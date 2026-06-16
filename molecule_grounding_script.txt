@@ -1,0 +1,57 @@
+digraph MOL_API_Workflow {
+
+
+    node [shape=rect, style=filled, fontname="Helvetica"];
+    MOL [label="Input MOL entity", fillcolor=lightblue];
+
+    node [shape=rect, style=filled, fillcolor=lightyellow];
+
+    pdb_pattern [label="4 characters?"];
+    pdb_exists [label="Found in PDB?"];
+
+    uniprot_pattern[label="Matches UniProt\naccession pattern?"];
+    uniprot_exists[label="Found in UniProt?"];
+    sequence_pattern [label="Matches sequence pattern?"];
+
+    chebi_exists[label="Found in ChEBI?"];
+    pubchem_exists [label="Found in PubChem?"];
+    kegg_exists [label="Found in KEGG?"];
+
+
+    multi_db[label="Found in ≥ 2 databases?"];
+
+    node [shape=rectangle, fillcolor=lightgreen];
+
+    pdb_id [label="Assign PDB ID"];
+    uniprot_id [label="Assign UniProt ID"];
+    chebi_id[label="Assign Chebi or PubChem ID"];
+    sequence_exists [label="Classify as ARN DNA or PROTEIN"];
+
+    node [fillcolor=tomato];
+    unknown [label="Unknown MOL entity"];
+
+    MOL -> pdb_pattern;
+
+    pdb_pattern -> pdb_exists [label="Yes"];
+
+    pdb_exists -> pdb_id [label="Yes"];
+    pdb_exists -> uniprot_pattern [label="No"];
+
+    uniprot_pattern -> uniprot_exists [label="Yes"];
+    uniprot_exists -> chebi_exists [label="No"];
+    uniprot_exists -> pubchem_exists [label="No"];
+    uniprot_exists -> kegg_exists [label="No"];
+
+    uniprot_exists -> uniprot_id [label="Yes"];
+
+    chebi_exists -> multi_db;
+    pubchem_exists -> multi_db;
+    kegg_exists -> multi_db;
+
+
+
+    multi_db -> chebi_id [label="Yes"];
+    multi_db -> sequence_pattern[label="No"];
+    sequence_pattern -> sequence_exists [label="Yes"];
+    sequence_pattern -> unknown [label="No"];
+}
