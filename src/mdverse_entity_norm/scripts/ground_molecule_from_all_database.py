@@ -223,7 +223,8 @@ def filter_molecules(molecules: list[str]) -> tuple[list[str], list[dict]]:
             )
 
     logger.info(
-        f"Filtered {len(small_molecules)} small molecules and {len(other_entities)} other entities."
+        f"Filtered {len(small_molecules)} small molecules and {len(other_entities)}"
+        f"other entities."
     )
     return small_molecules, other_entities
 
@@ -369,7 +370,7 @@ def query_chebi_by_name(entity_name: str) -> str | None:
     try:
         chebi_response = httpx.get(API_CHEBI, params={"term": entity_name}, timeout=200)
         if chebi_response is not None and chebi_response.status_code == 200:
-            results = chebi_response.json()["results"]
+            results = chebi_response.json().get("results", [])
             if not results:
                 logger.warning(f"ChEBI: No ChEBI entry found for {entity_name}")
                 return None
@@ -406,7 +407,11 @@ def query_pubchem_by_name(entity_name: str) -> str | None:
     try:
         response = httpx.get(f"{API_PUBCHEM}/compound/name/{entity_name}/JSON")
         if response is not None and response.status_code == 200:
-            pubchem_id = str(response.json()["PC_Compounds"][0]["id"]["id"]["cid"])
+            compounds = response.json().get("PC_Compounds", [])
+            if not compounds:
+                logger.warning(f"PubChem: No compound found for {entity_name}")
+                return None
+            pubchem_id = str(compounds[0]["id"]["id"]["cid"])
             logger.info(f"PubChem: Found Pubchem ID {pubchem_id}")
             return pubchem_id
         logger.warning(f"PubChem: Failed to retrieve PubChem ID for {entity_name}")
@@ -439,15 +444,23 @@ def query_pubchem_by_substance(substance_id: str) -> str | None:
     try:
         response = httpx.get(f"{API_PUBCHEM}/substance/sid/{substance_id}/cids/JSON")
         if response is not None and response.status_code == 200:
-            pubchem_id_from_substance = str(
-                response.json()["InformationList"]["Information"][0]["CID"]
+            information = (
+                response.json().get("InformationList", {}).get("Information", [])
             )
+            if not information:
+                logger.warning(
+                    f"Pubchem Substance: No CID found for substance {substance_id}"
+                )
+                return None
+            pubchem_id_from_substance = str(information[0]["CID"])
             logger.info(
-                f"Pubchem Substance: Found Pubchem compound ID {pubchem_id_from_substance}"
+                f"Pubchem Substance: Found Pubchem compound ID"
+                f"{pubchem_id_from_substance}"
             )
             return pubchem_id_from_substance
         logger.warning(
-            f"Pubchem Substance: Failed to retrieve PubChem compound ID for {substance_id}"
+            f"Pubchem Substance: Failed to retrieve PubChem compound ID for"
+            f"{substance_id}"
         )
         return None
     except httpx.RemoteProtocolError as e:
@@ -479,7 +492,8 @@ def query_pubchem_substance_by_name(entity_name: str) -> str | None:
         response = httpx.get(f"{API_PUBCHEM}/substance/name/{entity_name}/JSON")
         if response is None or response.status_code != 200:
             logger.warning(
-                f"PubChem Substance: Failed to retrieve PubChem substance for {entity_name}"
+                f"PubChem Substance: Failed to retrieve PubChem substance for"
+                f"{entity_name}"
             )
             return None
         substances = response.json().get("PC_Substances", [])
@@ -491,7 +505,8 @@ def query_pubchem_substance_by_name(entity_name: str) -> str | None:
         sid = substances[0].get("sid", {}).get("id")
         if sid is None:
             logger.warning(
-                f"PubChem Substance: No SID found in PubChem substance response for {entity_name}"
+                f"PubChem Substance: No SID found in PubChem substance response for"
+                f" {entity_name}"
             )
             return None
         sid = str(sid)
@@ -544,13 +559,13 @@ def get_chebi_id_from_pubchem_synonyms(pubchem_id: str) -> str | None:
         )
         return None
     except httpx.RemoteProtocolError as e:
-        logger.warning(f"RemoteProtocolError on {API_CHEBI} for {pubchem_id}: {e}")
+        logger.warning(f"RemoteProtocolError on {API_PUBCHEM} for {pubchem_id}: {e}")
         return None
     except httpx.TimeoutException as e:
-        logger.warning(f"Timeout on {API_CHEBI} for {pubchem_id}: {e}")
+        logger.warning(f"Timeout on {API_PUBCHEM} for {pubchem_id}: {e}")
         return None
     except httpx.RequestError as e:
-        logger.warning(f"Request error on {API_CHEBI} for {pubchem_id}: {e}")
+        logger.warning(f"Request error on {API_PUBCHEM} for {pubchem_id}: {e}")
         return None
 
 
@@ -583,7 +598,8 @@ def get_chebi_id_from_pubchem_synonyms_from_sid(sid: str) -> str | None:
                     if synonym.startswith("CHEBI:"):
                         chebi_id = synonym.replace("CHEBI:", "")
                         logger.info(
-                            f"Pubchem substance: Found ChEBI ID in pubchem substance synonyms of{chebi_id}"
+                            f"Pubchem substance: Found ChEBI ID in pubchem substance"
+                            f" synonyms of{chebi_id}"
                         )
                         return chebi_id
                 logger.warning(
@@ -636,7 +652,7 @@ def get_pubchem_cid_from_substance(sid: str) -> str | None:
                     if cid is not None:
                         cid = str(cid)
                         logger.info(
-                            f"Pubchem substance: Found CID {cid} from substance ID {sid}"
+                            f"Pubchem substance: Found CID {cid} from substance ID{sid}"
                         )
                         return cid
                 logger.warning(
@@ -709,7 +725,7 @@ def get_synonym_from_pubchem_substance(sid: str) -> str | None:
 
 
 def get_compound_id_from_kegg_substance(sid: str) -> str | None:
-    """Return the PubChem compound ID from a KEGG substance SID using a cascade of fallbacks.
+    """Return the PubChem compound ID from a KEGG substance SID using fallbacks.
 
     First tries to find a CID directly in the substance's compound field.
     If not found, tries the direct SID to CID mapping via query_pubchem_by_substance.
@@ -826,7 +842,8 @@ def get_chebi_id_for_molecule(mol: str) -> tuple[str | None, str | None, str | N
     - Direct ChEBI search by name.
     - PubChem Compound: name then CID then compound synonyms for CHEBI:XXX.
     - PubChem Substance fallback (when no CID): name then SID then SID synonyms,
-      then SID then CID (compound field / cids endpoint / first synonym) then compound synonyms.
+      then SID then CID (compound field / cids endpoint / first synonym) then
+      compound synonyms.
     - KEGG: name then KEGG ChEBI ID directly.
     - KEGG PubChem CID (if different from direct): CID then compound synonyms.
     - KEGG SID fallback: if KEGG returns a substance ID, resolve to CID then synonyms.
@@ -858,12 +875,14 @@ def get_chebi_id_for_molecule(mol: str) -> tuple[str | None, str | None, str | N
 
     pubchem_id_from_kegg, chebi_from_kegg = query_kegg_by_name(mol)
     logger.info(
-        f"  → PubChem via KEGG: {pubchem_id_from_kegg!r}, ChEBI via KEGG: {chebi_from_kegg!r}"
+        f"  → PubChem via KEGG: {pubchem_id_from_kegg!r}, ChEBI via KEGG: "
+        f"{chebi_from_kegg!r}"
     )
 
     if pubchem_id_from_kegg is not None and pubchem_id_from_kegg != pubchem_cid:
         logger.info(
-            "Different CID between KEGG and direct pubchem , loonking in ChEBI with this CID..."
+            "Different CID between KEGG and direct pubchem , loonking in ChEBI with "
+            "this CID..."
         )
         chebi_via_kegg_cid = _chebi_from_pubchem_cid(pubchem_id_from_kegg)
         if chebi_via_kegg_cid is not None:
@@ -871,7 +890,8 @@ def get_chebi_id_for_molecule(mol: str) -> tuple[str | None, str | None, str | N
             chebi_from_kegg = chebi_via_kegg_cid
         else:
             logger.info(
-                f"No ChEBI via CID KEGG, searching for compound from SID KEGG: {pubchem_id_from_kegg}"
+                f"No ChEBI via CID KEGG, searching for compound from SID KEGG: "
+                f"{pubchem_id_from_kegg}"
             )
             resolved_cid = get_compound_id_from_kegg_substance(pubchem_id_from_kegg)
             if resolved_cid is not None:
