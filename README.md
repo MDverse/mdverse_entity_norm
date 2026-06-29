@@ -2,8 +2,7 @@
 
 ## Setup environment
 
-We use [uv](https://docs.astral.sh/uv/getting-started/installation/)
-to manage dependencies and the project environment.
+We use [uv](https://docs.astral.sh/uv/getting-started/installation/) to manage dependencies and the project environment.
 
 Clone the GitHub repository:
 
@@ -20,45 +19,92 @@ uv sync
 
 ## Usage
 
-This project consists of the normalisation step for mollecular dynamics entities. Currently, we have implemented the normalisation for temperature and the grounding for molecules. The normalisation and grounding processes are performed using the scripts located in the `src/mdverse_entity_norm/scripts` directory. Each script is designed to handle a specific type of entity and can be executed independently. The results of the normalisation and grounding processes are saved in the `results` directory, which is created if it does not already exist. The output files are in TSV format, containing the original entities and their corresponding normalized or grounded values, along with any relevant metadata such as confidence scores or error codes.
+This project implements the normalisation pipeline for molecular dynamics simulation metadata entities. Normalisation is currently supported for four entity types: temperature, small molecules, simulation times, and software versions (not yet implemented). The scripts are located in `src/mdverse_entity_norm/scripts/` and can be executed independently. Output files are saved in the `results/` directory, which is created automatically if it does not exist.
 
 ### Normalize temperature
-
-To normalize temperature entities, run :
 
 ```sh
 uv run src/mdverse_entity_norm/scripts/normalize_temperature.py
 ```
-> This command generates a file named `normalized_temperature.tsv` in the `results` directory, containing the normalized temperature entities. The file has two columns: `original_value` and `normalized_value`, where `original_value` is the original temperature entity and `normalized_value` is the normalized temperature entity in Celsius.
+
+This reads temperature entities from `data/entities.tsv` and writes `results/norm_temp.tsv`, a TSV file with four columns:
+
+| Column | Description |
+|---|---|
+| `raw_temperature` | Original temperature string |
+| `normalised_temperature` | Numeric value after normalisation |
+| `normalised_unit` | Unit after normalisation (Kelvin) |
+| `normalized_result` | Concatenated value and unit |
+
+Special cases `room temperature` and `human body temperature` are normalised to 293 K and 310 K respectively. All Celsius values are converted to Kelvin.
 
 ### Ground molecules
 
-The logic behind the grounding of molecule entities is described in this image  below   :
+The grounding logic is illustrated below:
+
 ![Grounding logic](molecules_grounding_logic.png)
 
-To ground molecules entities, run :
-
 ```sh
-uv run src/mdverse_entity_norm/scripts/ground_molecule.py --mol_filepath data/entities.tsv --grounded_mol_filepath results/grounded_molecules.tsv
+uv run src/mdverse_entity_norm/scripts/normalize_molecules.py
 ```
-> This command generates two files in the `results` directory: `grounded_molecules.tsv` and `non_grounded_molecules.tsv`. The `grounded_molecules.tsv` file contains the grounded molecule entities with their corresponding identifiers, while the `non_grounded_molecules.tsv` file contains the molecule entities that could not be grounded.
 
-The `grounded_molecules.tsv` file has six columns :
-    `Entity_name` : corresponding to the original molecule name,
-    `Database` : corresponding to the database name,
-    `ID` : corresponding to the molecule ID,
-    `Score` : corresponding to the confidence score,
-    `Name` : corresponding to the molecule full name,
-    `nb_res` : corresponding to the number of results found.
+This reads molecular entities from `data/entities.tsv`. Entities are first classified by type (PDB, UniProt, DNA, RNA, protein, or small molecule). PDB and UniProt entries are resolved via their respective APIs and saved to `results/ground_molecule/same_grounding_mol/pdb_uniprot_seq_entities.tsv`. Small molecules are grounded by consensus across ChEBI, PubChem, and KEGG, producing two output files:
 
-The`non_grounded_molecules.tsv` file has two columns :
-    `Entity_name` : corresponding to the original molecule name that could not be        grounded
-    `error` : corresponding to the error code obtained during the grounding process.
+**`chebi_comparaison.tsv`** — ChEBI grounding results for all small molecules:
+
+| Column | Description |
+|---|---|
+| `Molecule` | Original molecule name |
+| `CHEBI_ID` | ID returned directly by ChEBI |
+| `CHEBI_ID_from_KEGG` | ChEBI ID resolved via KEGG |
+| `CHEBI_ID_from_PubChem` | ChEBI ID resolved via PubChem synonyms |
+| `Match` | `True` if at least two sources agree |
+
+**`pubchem_comparaison_no_chebi_match.tsv`** — PubChem fallback for molecules with no ChEBI consensus:
+
+| Column | Description |
+|---|---|
+| `Molecule` | Original molecule name |
+| `PubChem_ID` | ID returned directly by PubChem |
+| `PubChem_ID_from_KEGG` | PubChem ID resolved via KEGG |
+| `Match` | `True` if both sources agree |
 
 ### Normalize simulation times
-To normalize simulation time entities, run :
+
+Two scripts are involved: one evaluates candidate LLM models on a labelled gold standard, the other applies the selected model to the full dataset.
+
+**Model evaluation:**
 
 ```sh
-uv run src/mdverse_entity_norm/scripts/normalize_simulation_time.py --ground_truth_file data/STIME_ground_truth.json --runs 10 --model_evaluation_file results/norm_simu_times/model_evaluation.tsv
+uv run src/mdverse_entity_norm/scripts/normalize_simulation_time.py \
+  --ground_truth_file data/STIME_ground_truth.json \
+  --runs 10 \
+  --model_evaluation_file results/norm_simu_times/model_evaluation.tsv
 ```
-> This command generates a file named `normalized_simulation_time.json` in the `results` directory, containing the normalized simulation time entities. The file is in JSON format, where each key is a simulation time entity and its corresponding value is the normalized simulation time value and time unit in the standard format. If a simulation time entity could not be normalized, its value will be `null`.
+
+This benchmarks 9 models via OpenRouter (including GPT-4o, DeepSeek V4 Pro, Claude Opus 4.7, and others) on a manually annotated gold standard of 100 simulation time entities, repeated over the specified number of runs. Results are saved to the file specified by `--model_evaluation_file`:
+
+| Column | Description |
+|---|---|
+| `model_name` | Model identifier |
+| `accuracy_percentage` | Average accuracy across runs (%) |
+| `normalisation_times_sec` | Average processing time per entity (s) |
+| `normalisation_cost` | Average cost per entity (USD) |
+
+> An `OPEN_ROUTER_KEY` environment variable must be set (e.g. via a `.env` file) for API access.
+
+**Entity normalisation:**
+
+```sh
+uv run src/mdverse_entity_norm/scripts/normalize_stime_results.py \
+  --entities-file data/entities.tsv \
+  --output-file results/norm_simu_times/normalized_stime_results.tsv
+```
+
+This applies DeepSeek V4 Pro to all STIME entities in the input file and writes a TSV with three columns:
+
+| Column | Description |
+|---|---|
+| `STIME` | Original simulation time string |
+| `LLM_value` | Normalised numeric value |
+| `LLM_unit` | Normalised unit (`ps`, `ns`, `μs`, `ms`, or `s`) |
