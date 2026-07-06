@@ -215,4 +215,6 @@ __marimo__/
 *.json
 *.owl
 *.html
-#!results/ground_mol_chebi.tsv
+
+# Results folder
+!results/
