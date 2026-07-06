@@ -10,9 +10,6 @@ from mdverse_entity_norm.scripts.evaluate_llm_models import (
     normalize_simulation_time,
 )
 
-MODEL_NAME = "deepseek/deepseek-v4-pro"
-PROMPT_PATH = Path("data/llm_prompt.txt")
-
 UNITS_TO_NS = {
     "ps": 1e-3,
     "ns": 1,
@@ -39,9 +36,7 @@ def get_stime_entities(entities_file: Path) -> pd.DataFrame:
     return stime_entities
 
 
-def normalize_row(
-    raw_time, model_name: str = MODEL_NAME, prompt_path: Path = PROMPT_PATH
-) -> str | None:
+def normalize_row(raw_time, model_name: str, prompt_path: Path) -> str | None:
     """Normalize a single raw simulation time string using the LLM.
 
     Parameters
@@ -66,21 +61,22 @@ def normalize_row(
 
 def normalize_dataframe_times(
     stime_entities: pd.DataFrame,
+    prompt_path: Path,
+    model_name: str,
     column: str = "entity",
 ) -> pd.DataFrame:
     """Apply LLM normalization to the specified column of the DataFrame.
-
-    Parameters
-    ----------
-        stime_entities: DataFrame containing the entities to normalize.
-        column: The name of the column containing the raw simulation time strings.
 
     Returns
     -------
         pd.DataFrame: The input DataFrame with an additional column 'normalized_time'
         containing the normalized values.
     """
-    stime_entities["normalized_time"] = stime_entities[column].apply(normalize_row)
+    stime_entities["normalized_time"] = stime_entities[column].apply(
+        lambda x: normalize_row(
+            raw_time=x, model_name=model_name, prompt_path=prompt_path
+        )
+    )
     return stime_entities
 
 
@@ -136,29 +132,36 @@ def save_results_to_tsv(results: list, output_file: Path):
 
 @click.command()
 @click.option(
-    "--entities-file",
+    "--entities-path",
     type=click.Path(exists=True, dir_okay=False, path_type=Path),
-    default=Path("../data/ground_entities.tsv"),
     help="Path to the TSV file containing the entities.",
 )
 @click.option(
-    "--output-file",
+    "--normalization-results-path",
     type=click.Path(dir_okay=False, path_type=Path),
-    default=Path("../results/norm_simu_times/normalized_stime_results.tsv"),
     help="Path to the output TSV file for normalized results.",
 )
-def main(entities_file: Path, output_file: Path):
-    """Execute the normalization process.
-
-    Parameters
-    ----------
-        entities_file: Path to the TSV file containing the entities.
-        output_file: Path to the output TSV file for normalized results.
-    """
-    stime_entities = get_stime_entities(entities_file)
-    stime_entities = normalize_dataframe_times(stime_entities)
+@click.option(
+    "--prompt-path",
+    type=click.Path(file_okay=True, path_type=Path),
+    help="Path to the llm prompt file",
+)
+@click.option(
+    "--model_name",
+    type=str,
+    help="Name of the LLM model to use for normalization.",
+)
+def main(
+    entities_path: Path,
+    normalization_results_path: Path,
+    prompt_path: Path,
+    model_name: str,
+):
+    """Execute the normalization process."""
+    stime_entities = get_stime_entities(entities_path)
+    stime_entities = normalize_dataframe_times(stime_entities, prompt_path, model_name)
     results = get_llm_normalization_results(stime_entities)
-    save_results_to_tsv(results, output_file)
+    save_results_to_tsv(results, normalization_results_path)
 
 
 if __name__ == "__main__":
