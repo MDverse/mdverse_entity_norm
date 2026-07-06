@@ -1,8 +1,9 @@
 """Script to normalize simulation temperature entities."""
 
 import re
+from pathlib import Path
 
-import matplotlib.pyplot as plt
+import click
 import pandas as pd
 from loguru import logger
 
@@ -68,19 +69,22 @@ def norm_temp(temp_str: str) -> tuple:
     return temperature_value, temperature_unit
 
 
-def create_norm_temp_file(raw_temp_file: str, norm_temp_file: str) -> None:
+def create_norm_temp_file(raw_temp_file: Path, norm_temp_file: Path) -> None:
     """Create a .tsv file containing the raw temperature value.
 
     the normalised temperature value and the normalised unit.
 
     Parameters
     ----------
-    raw_temp_file (str) : name of the  input file containing the raw values
-    norm_temp_file (str) : name of the input file with the normalised informations
+    raw_temp_file (Path) : path to the input file containing the raw values
+    norm_temp_file (Path) : path to the input file with the normalised informations
 
     """
     df = pd.read_csv(raw_temp_file, sep="\t")
-    temp_entities = df[df["category"] == "TEMP"]["entity"].tolist()
+    temp_entities = df[df["category"] == "STEMP"]["entity"].tolist()
+
+    if not norm_temp_file.parent.exists():
+        norm_temp_file.parent.mkdir(parents=True, exist_ok=True)
 
     with open(norm_temp_file, "w") as f2:
         f2.write(
@@ -99,30 +103,21 @@ def create_norm_temp_file(raw_temp_file: str, norm_temp_file: str) -> None:
                 f2.write(f"{raw_temp}\tERROR\tERROR\tERROR\n")
 
 
-def visualize_entity_count(file_path):
-    """Visualize the number of unique temperature entities before/after normalization.
-
-    Parameters
-    ----------
-    file_path (str): Path to the TSV file containing the normalized temperature results.
-    """
-    temp_normalisation_results = pd.read_csv(file_path, sep="\t")
-
-    before = len(temp_normalisation_results["raw_temperature"].unique())
-    after = len(temp_normalisation_results["normalized_result"].unique())
-
-    plt.figure(figsize=(6, 5))
-
-    labels = ["Before Grounding", "After Grounding"]
-    values = [before, after]
-
-    plt.bar(labels, values)
-    plt.ylabel("Number of unique temperatures")
-    plt.title("Unique Temperature Count")
-    plt.tight_layout()
-    plt.savefig("results/norm_temp/entity_count.png")
+@click.command()
+@click.option(
+    "--raw-entities-path",
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    help="Path to the input file containing raw temperature entities.",
+)
+@click.option(
+    "--normalized-stemp-path",
+    type=click.Path(dir_okay=False, path_type=Path),
+    help="Path to the output file for normalized temperature entities.",
+)
+def main(raw_entities_path: Path, normalized_stemp_path: Path):
+    """Normalize all the temperature entities in the input file and visualization."""
+    create_norm_temp_file(raw_entities_path, normalized_stemp_path)
 
 
 if __name__ == "__main__":
-    create_norm_temp_file("data/entities.tsv", "results/norm_temp.tsv")
-    visualize_entity_count("results/norm_temp.tsv")
+    main()
