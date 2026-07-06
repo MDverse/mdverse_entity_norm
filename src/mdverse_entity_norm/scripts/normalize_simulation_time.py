@@ -320,7 +320,12 @@ def normalize_all_entities(
     return normalised_entity, normalisation_time, normalisation_cost
 
 
-def evaluate_all_models(raw_simulation_times: list, ground_truth_file: Path, runs: int, prompt_file_path: Path):
+def evaluate_all_models(
+    raw_simulation_times: list,
+    ground_truth_file: Path,
+    runs: int,
+    prompt_file_path: Path,
+):
     """Evaluate all models and save results to TSV file.
 
     Parameters
@@ -412,13 +417,15 @@ def save_evaluation_results_in_tsv(
     runs (int): The number of runs to perform for each model to calculate the
     average accuracy.
     """
-    results = evaluate_all_models(raw_simulation_times, ground_truth_file, runs, prompt_file_path)
+    results = evaluate_all_models(
+        raw_simulation_times, ground_truth_file, runs, prompt_file_path
+    )
     with open(model_evaluation_file, "w") as f:
         f.write(
             "model_name\taccuracy_percentage\tnormalisation_times_sec\tnormalisation_cost\n"
         )
         f.writelines(
-            f"{result['model_name']}\t{result['accuracy_percentage']}\t{result['normalisation_time']}\t{result['normalisation_cost']}\n"
+            f"{result['model_name']}\t{result['accuracy_percentage']}\t{result['inference_time_by_entity']}\t{result['inference_cost_by_entity_USD']}\n"
             for result in results
         )
 
