@@ -147,7 +147,7 @@ def save_results_to_tsv(results: list, output_file: Path):
     help="Path to the llm prompt file",
 )
 @click.option(
-    "--model_name",
+    "--model-name",
     type=str,
     help="Name of the LLM model to use for normalization.",
 )
