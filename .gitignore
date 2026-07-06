@@ -214,5 +214,5 @@ __marimo__/
 
 # Results folder
 results/*
-!results/FFM_normalized
-!results/SOFTNAME_normalized
+!results/FFM
+!results/SOFTNAME
