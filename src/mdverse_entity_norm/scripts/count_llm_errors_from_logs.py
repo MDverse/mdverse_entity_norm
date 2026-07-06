@@ -1,27 +1,23 @@
 """Script to count the number of LLM errors from logs."""
 
-import sys
+from pathlib import Path
 
+import click
 import pandas as pd
 from loguru import logger
 
 
-def check_argument():
-    if len(sys.argv) < 2:
-        print("Usage: uv run script.py <logfile>")
-        sys.exit(1)
+def extract_errors(lines: list[str]) -> list:
+    """Extract the model, input, and output from the log lines.
 
-    file_name = sys.argv[1]
-
-    with open(file_name) as f:
-        lines = f.readlines()
-
-    return lines
-
-
-def extract_errors(lines):
+    Returns
+    -------
+    list
+        A list of lists, where each inner list contains the model, input, and output for
+        each error found in the log lines.
+    """
     results = []
-    logger.info("Extarcting input and output")
+    logger.info("Extracting errors from log lines...")
     for i in range(len(lines)):
         if "failed" in lines[i]:
             context = lines[max(0, i - 2) : i + 1]
@@ -50,41 +46,47 @@ def extract_errors(lines):
 
             results.append([model, input_val, output])
 
+    logger.success(f"Extracted {len(results)} errors from log lines.")
     return results
 
 
-def compute_occurrences(df):
-    counts = df.value_counts().reset_index()
+@click.command()
+@click.option(
+    "--log-file",
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    help="Path to the TSV file containing the entities.",
+)
+def main(log_file: Path):
+    """Count the number of LLM errors from logs."""
+    logger.info(f"Counting LLM errors from log file: {log_file}")
+    # Load the log file and extract the lines
+    try:
+        with open(log_file, encoding="utf-8") as f:
+            lines = f.readlines()
+    except FileNotFoundError:
+        logger.error("Log file not found.")
+        return
+    except UnicodeDecodeError as e:
+        logger.error(f"Error reading log file: {e}")
+        return
+
+    errors = extract_errors(lines)
+    df_errors = pd.DataFrame(errors, columns=["model", "input", "result"])
+    # Count the occurrences of each unique combination of model, input, and result
+    counts = df_errors.value_counts().reset_index()
     counts.columns = ["model", "input", "result", "count"]
-    return counts
-
-
-def add_model_totals(df):
-    df["total"] = df.groupby("model")["count"].transform("sum")
-    return df
-
-
-def sort_results(df):
-    return df.sort_values(by=["total", "count"], ascending=False)
-
-
-def save_to_tsv(df, output_path="results/norm_simu_times/llm_error_count.tsv"):
-    df.to_csv(output_path, sep="\t", index=False)
-
-
-def main():
-    lines = check_argument()
-
-    data = extract_errors(lines)
-    df = pd.DataFrame(data, columns=["model", "input", "result"])
-
-    occurrences = compute_occurrences(df)
-    occurrences = add_model_totals(occurrences)
-    sorted_df = sort_results(occurrences)
+    # Add a total count for each model
+    counts["total"] = counts.groupby("model")["count"].transform("sum")
+    # Sort the DataFrame by total count and then by individual count
+    sorted_df = counts.sort_values(by=["total", "count"], ascending=False)
+    # Rearrange the columns to have total and count first
     sorted_df = sorted_df[["total", "count", "model", "input", "result"]]
-
-    print(sorted_df)
-    save_to_tsv(sorted_df)
+    logger.debug(f"Sorted DataFrame:\n{sorted_df}")
+    # Save the sorted DataFrame to a TSV file
+    output_path = Path("results/STIME_normalized/llm_error_count.tsv")
+    if not output_path.parent.exists():
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+    sorted_df.to_csv(output_path, sep="\t", index=False)
 
 
 if __name__ == "__main__":
