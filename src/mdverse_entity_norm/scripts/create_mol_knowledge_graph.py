@@ -17,10 +17,6 @@ def get_molecules(
 ) -> list[str]:
     """Return the list of molecule names that were successfully normalized.
 
-    A molecule is considered normalized if it meets one of the following criteria:
-    - In the ChEBI and PubChem file: Match == True
-    - In the PDB file: the molecule has a non-null ID
-
     Parameters
     ----------
     chebi_file:
@@ -60,10 +56,6 @@ def get_molecules(
 def get_json_files(entities_file: str, normalized_molecules: list[str]) -> list[str]:
     """Return the list of JSON files that contain at least one normalized molecule.
 
-    Reads the entities TSV and filters for MOL-category rows whose entity name
-    matches one of the normalized molecules. Returns the unique JSON file names
-    associated with those rows.
-
     Parameters
     ----------
     entities_file:
@@ -92,10 +84,6 @@ def create_molecule_dataset_relationships(
     pdb_file: str,
 ) -> dict[str, list[str]]:
     """Return a mapping from each JSON dataset file to its normalized molecules.
-
-    For each JSON file that contains at least one normalized molecule, the
-    dictionary maps the file name to the list of normalized molecule names
-    found in it.
 
     Parameters
     ----------
@@ -138,10 +126,6 @@ def get_normalized_molecule_ids(
     pdb_file: str,
 ) -> list[dict]:
     """Return a list of records with each normalized molecule name and its database ID.
-
-    For ChEBI and PubChem, only rows where Match == True are included.
-    For PDB, only rows with a non-null ID are included.
-    Each record contains the source database, the original molecule name, and the ID.
 
     Parameters
     ----------
@@ -210,10 +194,6 @@ def create_mol_normalisation_relationships(
 ) -> dict[str, str]:
     """Return a mapping from raw molecule names to their normalized database IDs.
 
-    Only molecules with Match == True (ChEBI, PubChem) or a non-null ID (PDB)
-    are included. The normalized ID is formatted as "<DATABASE>:<ID>" for clarity
-    (e.g., "CHEBI:15422", "PubChem:5793", "PDB:4HKR").
-
     Parameters
     ----------
     chebi_file:
@@ -249,19 +229,6 @@ def create_knowledge_graph(
     normalized: bool = False,
 ) -> nx.Graph:
     """Build and return a NetworkX knowledge graph for molecule grounding.
-
-    The graph always contains two layers of nodes and edges:
-    - **Dataset nodes** (gold): one node per JSON file that contains at least
-      one successfully normalised molecule.
-    - **Raw molecule nodes** (blue): one node per molecule name as it appears
-      in the entities TSV.
-    - **Dataset → raw molecule edges**: drawn from create_molecule_dataset_relationships().
-
-    When ``normalized`` is True, a third layer is added:
-    - **Normalised ID nodes** (green): one node per unique normalised ID string
-      (e.g. ``"CHEBI:45296"``), labelled with that ID.
-    - **Raw molecule → normalised ID edges**: drawn from
-      create_mol_normalisation_relationships().
 
     Parameters
     ----------
@@ -326,15 +293,6 @@ def create_knowledge_graph(
 def visualize_knowledge_graph(graph: nx.Graph, output_path: str) -> None:
     """Render the knowledge graph as an interactive HTML file using PyVis.
 
-    Node colours follow the convention set in create_knowledge_graph():
-    - Gold  (#FFD700): dataset (JSON file) nodes — displayed larger.
-    - Blue  (#4DA6FF): raw molecule name nodes.
-    - Green (#90EE90): normalised ID nodes (only present when normalized=True).
-
-    All edges are drawn in gold with a uniform width. The physics layout uses
-    repulsion to spread nodes apart with low central gravity, mimicking the
-    style of the original graph.
-
     Parameters
     ----------
     graph:
@@ -382,17 +340,7 @@ def visualize_knowledge_graph(graph: nx.Graph, output_path: str) -> None:
 
 
 def main() -> None:
-    """Run the full molecule grounding knowledge graph pipeline.
-
-    Steps:
-    1. Get all successfully normalised molecule names.
-    2. Get the JSON dataset files that contain those molecules.
-    3. Build the dataset → molecule relationship dictionary.
-    4. Get the normalised molecule IDs (ChEBI / PubChem / PDB).
-    5. Build the raw molecule → normalised ID relationship dictionary.
-    6. Build and export the raw knowledge graph (no normalised IDs).
-    7. Build and export the normalised knowledge graph (with normalised IDs).
-    """
+    """Run the full molecule grounding knowledge graph pipeline."""
     chebi_file = "results/ground_molecule/same_grounding_mol/chebi_comparaison.tsv"
     pubchem_file = "results/ground_molecule/same_grounding_mol/pubchem_comparaison_no_chebi_match.tsv"
     pdb_file = "results/ground_molecule/same_grounding_mol/pdb_uniprot_seq_entities.tsv"
