@@ -1,3 +1,5 @@
+"""Script to count the number of LLM errors from logs."""
+
 import sys
 
 import pandas as pd
