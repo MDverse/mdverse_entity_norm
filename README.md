@@ -1,5 +1,8 @@
 # mdverse_entity_norm
 
+This project implements the normalization pipeline for molecular dynamics (MD) simulation metadata entities. Normalization standardizes entity mentions by mapping them to controlled vocabularies or reference databases (e.g., [ChEBI](https://www.ebi.ac.uk/chebi/), [PubChem](https://pubchem.ncbi.nlm.nih.gov/), [KEGG](https://www.genome.jp/kegg/)), ensuring consistency and interoperability across datasets.
+Normalisation is currently supported for four entity types: molecule names (MOL),simulation times (STIME) and temperatures (STEMP), software names (SOFTNAME) and force fields and models (FFM).
+
 ## Setup environment
 
 We use [uv](https://docs.astral.sh/uv/getting-started/installation/) to manage dependencies and the project environment.
@@ -19,12 +22,13 @@ uv sync
 
 ## Usage
 
-This project implements the normalisation pipeline for molecular dynamics simulation metadata entities. Normalisation is currently supported for four entity types: temperature, small molecules, simulation times, and software versions (not yet implemented). The scripts are located in `src/mdverse_entity_norm/scripts/` and can be executed independently. Output files are saved in the `results/` directory, which is created automatically if it does not exist.
+The following scripts require an `entities.tsv` file as input. The file should contain the columns `entity`, `category`, and `json_file`.
 
-### Normalize temperature
+### Simulation temperature (STEMP)
+To normalize simulation temperatures, run:
 
 ```sh
-uv run src/mdverse_entity_norm/scripts/normalize_temperature.py
+uv run src/mdverse_entity_norm/scripts/normalize_stemp.py
 ```
 
 This reads temperature entities from `data/entities.tsv` and writes `results/norm_temp.tsv`, a TSV file with four columns:
@@ -38,7 +42,7 @@ This reads temperature entities from `data/entities.tsv` and writes `results/nor
 
 Special cases `room temperature` and `human body temperature` are normalised to 293 K and 310 K respectively. All Celsius values are converted to Kelvin.
 
-### Ground molecules
+### Ground molecule names
 
 The grounding logic is illustrated below:
 
