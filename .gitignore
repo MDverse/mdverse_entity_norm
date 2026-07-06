@@ -211,10 +211,8 @@ __marimo__/
 *.tsv
 *.parquet
 *.csv
-*.png
-*.json
-*.owl
-*.html
 
 # Results folder
-!results
+results/*
+!results/FFM
+!results/SOFTNAME

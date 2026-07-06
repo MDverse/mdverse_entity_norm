@@ -19,8 +19,8 @@ from pydantic import BaseModel, Field
 
 load_dotenv()
 
-# We deifine the list of model that we are going to test
-MODEL = [
+# list of model that we are going to test
+MODELS = [
     "openai/gpt-4o",
     "openai/gpt-5.5",
     "deepseek/deepseek-v4-pro",
@@ -31,13 +31,6 @@ MODEL = [
     "anthropic/claude-opus-4.7",
     "mistralai/mistral-large-2512",
 ]
-
-# We creat a pydantic class that will define the structure the llm output
-# - The SimulationTime class will define the structure of a simulation time :
-#    value, unit
-# - The NormSimuTime class will define the structure of the llm output :
-#    input (simluation time given to normalize)
-#    output (structured simulation time -> defined by the previous class)
 
 
 class SimulationTime(BaseModel):
@@ -58,23 +51,6 @@ class NormSimuTime(BaseModel):
     output: list[SimulationTime] = Field(
         ..., description="normalized simulation timevalues and units"
     )
-
-
-# We create the prompt containning the normalisation guideline for the llm
-PROMPT = """You are a unit normalization assistant for molecular dynamics simulation times.
-Your tasks:
-- Convert all time units to standard time abbreviations (ps, ns, μs, ms, s)
-- Separate numerical values from time units
-
-Rules:
-- No markdown, no explanation
-- Use only standard time units: ps (picoseconds), ns (nanoseconds), μs (microseconds), ms (milliseconds), s (seconds)
-- Always separate value and unit (e.g. "500ns" → value: 500, unit: "ns")
-- Take in consideration values written in letter (e.g. "one hundred"), and convert it to numeric value
-- If the simulation time is an interval, separate each simulation time in the interval.
-- If the unit is missing or the unit is not a time unit, output the normalized unit to "None"
-- If the numerical value is missing, output the normalized value to "None"
- """
 
 
 # We load the simulation times from the file in a list of simulatuion time to enable
@@ -320,7 +296,12 @@ def normalize_all_entities(
     return normalised_entity, normalisation_time, normalisation_cost
 
 
-def evaluate_all_models(raw_simulation_times: list, ground_truth_file: Path, runs: int, prompt_file_path: Path):
+def evaluate_all_models(
+    raw_simulation_times: list,
+    ground_truth_file: Path,
+    runs: int,
+    prompt_file_path: Path,
+):
     """Evaluate all models and save results to TSV file.
 
     Parameters
@@ -345,7 +326,7 @@ def evaluate_all_models(raw_simulation_times: list, ground_truth_file: Path, run
 
     results = []
 
-    for model in MODEL:
+    for model in MODELS:
         logger.info("-" * 20)
         logger.info(f"Model: {model.replace('-', '_')}")
         total_correct = 0
@@ -412,29 +393,24 @@ def save_evaluation_results_in_tsv(
     runs (int): The number of runs to perform for each model to calculate the
     average accuracy.
     """
-    results = evaluate_all_models(raw_simulation_times, ground_truth_file, runs, prompt_file_path)
+    results = evaluate_all_models(
+        raw_simulation_times, ground_truth_file, runs, prompt_file_path
+    )
     with open(model_evaluation_file, "w") as f:
         f.write(
             "model_name\taccuracy_percentage\tnormalisation_times_sec\tnormalisation_cost\n"
         )
         f.writelines(
-            f"{result['model_name']}\t{result['accuracy_percentage']}\t{result['normalisation_time']}\t{result['normalisation_cost']}\n"
+            f"{result['model_name']}\t{result['accuracy_percentage']}\t{result['inference_time_by_entity']}\t{result['inference_cost_by_entity_USD']}\n"
             for result in results
         )
 
 
 @click.command()
 @click.option(
-    "--normalized_simulation_time",
-    default="results/normalized_simulation_time_gpt.json",
-    type=click.Path(file_okay=True, path_type=Path),
-    help="Path to the JSON output file containing the normalized simulation times",
-)
-@click.option(
-    "--ground_truth_file",
-    default="data/STIME_ground_truth.json",
+    "--groundtruth-path",
     type=click.Path(exists=True, file_okay=True, path_type=Path),
-    help="Path to the groundtruth file",
+    help="Path to the groundtruth file containing manually normalized simulation times",
 )
 @click.option(
     "--runs",
@@ -443,24 +419,30 @@ def save_evaluation_results_in_tsv(
     help="Number of runs of the script",
 )
 @click.option(
-    "--model_evaluation_file",
-    default="results/norm_simu_times/model_evaluation.tsv",
+    "--model-evaluation-path",
     type=click.Path(file_okay=True, path_type=Path),
     help="Path to the TSV file for model evaluation results",
 )
+@click.option(
+    "--prompt-path",
+    type=click.Path(file_okay=True, path_type=Path),
+    help="Path to the llm prompt file",
+)
 def main_normalizing_simulation_times(
-    normalized_simulation_time: Path,
-    ground_truth_file: Path,
+    groundtruth_path: Path,
     runs: int,
-    model_evaluation_file: Path,
+    model_evaluation_path: Path,
+    prompt_path: Path,
 ):
     """Normalize the simulation times entities bu running all annexe functions."""
-    times = load_simulation_times(ground_truth_file)
+    times = load_simulation_times(groundtruth_path)
     times = times[:]
-    # normalisation_output = format_norm_simulation_time(times, model_name=MODEL[0])
-    # save_norm_simulation_results(normalisation_output, normalized_simulation_time)
     save_evaluation_results_in_tsv(
-        model_evaluation_file, times, ground_truth_file, Path("PROMPT"), runs
+        model_evaluation_path,
+        times,
+        groundtruth_path,
+        prompt_path,
+        runs,
     )
 
 
