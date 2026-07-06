@@ -76,6 +76,7 @@ The evaluation results across the tested models are detailed below:
 | moonshotai/kimi-k2.6               |                      89 |                       28.17 |                          0.0002 |
 | google/gemma-4-31b-it              |                      62 |                        2.44 |                          0.0002 |
 
+
 #### Entity normalization:
 
 Based on these results, **DeepSeek V4 Pro** was selected as the optimal open-weight model, offering the best balance between high accuracy (97%), reasonable latency, and cost efficiency.
@@ -83,9 +84,7 @@ Based on these results, **DeepSeek V4 Pro** was selected as the optimal open-wei
 To apply this model and normalize the entire dataset, run:
 
 ```sh
-uv run src/mdverse_entity_norm/scripts/normalize_stime_results.py \
-  --entities-file data/entities.tsv \
-  --output-file results/norm_simu_times/normalized_stime_results.tsv
+uv run src/mdverse_entity_norm/scripts/normalize_stime_wth_llm.py --entities-path data/entities.tsv --normalization-results-path results/STIME/stime_normalized.tsv --prompt-path data/llm_prompt.txt --model-name "deepseek/deepseek-v4-pro"
 ```
 
 This processes all raw STIME entities and outputs a three-column TSV with the standardized values and units:
