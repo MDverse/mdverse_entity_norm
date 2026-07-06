@@ -42,7 +42,7 @@ Special cases `room temperature` and `human body temperature` are normalised to 
 
 The grounding logic is illustrated below:
 
-![Grounding logic](molecules_grounding_logic.png)
+![Grounding logic](plots/molecules_grounding_logic.png)
 
 ```sh
 uv run src/mdverse_entity_norm/scripts/normalize_molecules.py
