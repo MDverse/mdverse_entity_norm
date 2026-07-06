@@ -6,7 +6,7 @@ from pathlib import Path
 import click
 import pandas as pd
 
-from mdverse_entity_norm.scripts.normalize_simulation_time import (
+from mdverse_entity_norm.scripts.evaluate_llm_models import (
     normalize_simulation_time,
 )
 
